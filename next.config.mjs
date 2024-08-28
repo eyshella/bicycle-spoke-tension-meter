@@ -5,7 +5,6 @@ const nextConfig = {
     images: {
         unoptimized: true,
     },
-    basePath: '/bicycle-spoke-tension-meter'
 };
 
 export default nextConfig;
