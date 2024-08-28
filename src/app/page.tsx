@@ -34,10 +34,11 @@ export default function Home() {
 
     useEffect(() => {
         pitchDetectorRef.current.addListener('pitch', ({frequency, db}) => {
-            if(maxDbRef.current<=db){
-                maxDbRef.current = db
-                setFrequency(Math.round(frequency))
-            }
+            setFrequency(Math.round(frequency))
+            // if(maxDbRef.current<=db){
+            //     maxDbRef.current = db
+            //     setFrequency(Math.round(frequency))
+            // }
         })
     }, []);
 
