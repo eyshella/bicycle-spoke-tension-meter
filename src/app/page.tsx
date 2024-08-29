@@ -16,7 +16,6 @@ export default function Home() {
     const [dbBoundString, setDbBoundString] = useState(`${dbBoundRef.current}`);
 
     const [finalFrequency, setFinalFrequency] = useState(0);
-    const [finalDb, setFinalDb] = useState(0);
     const [currentFrequency, setCurrentFrequency] = useState(0);
     const [currentDb, setCurrentDb] = useState(0);
 
@@ -36,7 +35,6 @@ export default function Home() {
     const startCallback = useCallback(async () => {
         setFinalFrequency(0)
         setCurrentFrequency(0)
-        setFinalDb(0)
         setCurrentDb(0)
         if (pitchDetectorRef.current.started) {
             await pitchDetectorRef.current.stop()
@@ -65,7 +63,6 @@ export default function Home() {
                 return
             }
 
-            setFinalDb(db)
             setFinalFrequency(Math.round(frequency))
         })
     }, []);
@@ -78,9 +75,6 @@ export default function Home() {
                 </div>
                 <div className={"font-sans text-white text-base"}>
                     Final Frequency = {finalFrequency} HZ
-                </div>
-                <div className={"font-sans text-white text-base"}>
-                    Final DB = {roundTo2Decimals(finalDb)}
                 </div>
                 <div className={"font-sans text-white text-base"}>
                     Current Frequency = {currentFrequency} HZ
