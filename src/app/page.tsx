@@ -36,6 +36,7 @@ export default function Home() {
         setCurrentFrequency(0)
         setFinalDb(0)
         setCurrentDb(0)
+        maxDbRef.current = 0
         if (pitchDetectorRef.current.started) {
             await pitchDetectorRef.current.stop()
         }
