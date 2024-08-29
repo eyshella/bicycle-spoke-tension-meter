@@ -12,8 +12,9 @@ export default function Home() {
     const [spokeDensityString, setSpokeDensityString] = useState('0.048');
     const [lowerTensionBoundString, setLowerTensionBoundString] = useState('50');
     const [upperTensionBoundString, setUpperTensionBoundString] = useState('150');
+    const dbBoundRef = useRef(-75)
+    const [dbBoundString, setDbBoundString] = useState(`${dbBoundRef.current}`);
 
-    const maxDbRef = useRef(-Infinity)
     const [finalFrequency, setFinalFrequency] = useState(0);
     const [finalDb, setFinalDb] = useState(0);
     const [currentFrequency, setCurrentFrequency] = useState(0);
@@ -27,16 +28,16 @@ export default function Home() {
     const lowerFrequencyBound = useMemo(() => SpokeTension.fromKGS(lowerTensionBound).toFrequency(spokeMass, spokeLength), [lowerTensionBound, spokeMass, spokeLength])
     const upperFrequencyBound = useMemo(() => SpokeTension.fromKGS(upperTensionBound).toFrequency(spokeMass, spokeLength), [upperTensionBound, spokeMass, spokeLength])
 
-    const tension = useMemo(() => {
-        return SpokeTension.fromFrequency(finalFrequency, spokeMass, spokeLength)
-    }, [finalFrequency, spokeLength, spokeMass])
+    const maxDbTension = useMemo(
+        () => SpokeTension.fromFrequency(finalFrequency, spokeMass, spokeLength),
+        [finalFrequency, spokeLength, spokeMass]
+    )
 
     const startCallback = useCallback(async () => {
         setFinalFrequency(0)
         setCurrentFrequency(0)
         setFinalDb(0)
         setCurrentDb(0)
-        maxDbRef.current = -Infinity
         if (pitchDetectorRef.current.started) {
             await pitchDetectorRef.current.stop()
         }
@@ -53,14 +54,19 @@ export default function Home() {
     }, [])
 
     useEffect(() => {
+        dbBoundRef.current = +dbBoundString
+    }, [dbBoundString]);
+
+    useEffect(() => {
         pitchDetectorRef.current.addListener('pitch', ({frequency, db}) => {
             setCurrentDb(db)
             setCurrentFrequency(frequency)
-            if (maxDbRef.current <= db) {
-                maxDbRef.current = db
-                setFinalDb(db)
-                setFinalFrequency(Math.round(frequency))
+            if(dbBoundRef.current > db){
+                return
             }
+
+            setFinalDb(db)
+            setFinalFrequency(Math.round(frequency))
         })
     }, []);
 
@@ -68,7 +74,7 @@ export default function Home() {
         <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4"}>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
                 <div className={"font-sans text-white text-base"}>
-                    Tension = {roundTo2Decimals(tension.newton)} N = {roundTo2Decimals(tension.kgf)} KGF
+                    Tension = {roundTo2Decimals(maxDbTension.newton)} N = {roundTo2Decimals(maxDbTension.kgf)} KGF
                 </div>
                 <div className={"font-sans text-white text-base"}>
                     Final Frequency = {finalFrequency} HZ
@@ -124,6 +130,16 @@ export default function Home() {
                        type={"number"} value={upperTensionBoundString}
                        disabled={started}
                        onChange={it => setUpperTensionBoundString(it.target.value)}/>
+            </div>
+
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+                <div className={"font-sans text-white text-base"}>
+                    DB bound
+                </div>
+                <input className={"font-sans text-white text-base border-white border-1 border-solid p-2 rounded"}
+                       type={"number"} value={dbBoundString}
+                       disabled={started}
+                       onChange={it => setDbBoundString(it.target.value)}/>
             </div>
             <div className={"flex flex-row items-center justify-start gap-4"}>
                 {started && <button

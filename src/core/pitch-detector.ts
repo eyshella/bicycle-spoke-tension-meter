@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 
-const SAMPLE_RATE = 48000
-const FFT_SIZE = 32768
+const SAMPLE_RATE = 8000
+const FFT_SIZE = 8192
 
 export type PitchDetectorStartOptions = {
     bounds?: [number, number]
