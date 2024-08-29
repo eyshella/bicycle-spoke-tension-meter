@@ -12,8 +12,9 @@ export default function Home() {
     const [spokeDensityString, setSpokeDensityString] = useState('0.048');
     const [lowerTensionBoundString, setLowerTensionBoundString] = useState('50');
     const [upperTensionBoundString, setUpperTensionBoundString] = useState('150');
-    const dbBoundRef = useRef(-75)
-    const [dbBoundString, setDbBoundString] = useState(`${dbBoundRef.current}`);
+    // const dbBoundRef = useRef(-75)
+    // const [dbBoundString, setDbBoundString] = useState(`${dbBoundRef.current}`);
+    const dbMaxRef = useRef(-Infinity)
 
     const [finalFrequency, setFinalFrequency] = useState(0);
     const [currentFrequency, setCurrentFrequency] = useState(0);
@@ -36,6 +37,7 @@ export default function Home() {
         setFinalFrequency(0)
         setCurrentFrequency(0)
         setCurrentDb(0)
+        dbMaxRef.current = -Infinity
         if (pitchDetectorRef.current.started) {
             await pitchDetectorRef.current.stop()
         }
@@ -51,18 +53,22 @@ export default function Home() {
         setStarted(false);
     }, [])
 
-    useEffect(() => {
-        dbBoundRef.current = +dbBoundString
-    }, [dbBoundString]);
+    // useEffect(() => {
+    //     dbBoundRef.current = +dbBoundString
+    // }, [dbBoundString]);
 
     useEffect(() => {
         pitchDetectorRef.current.addListener('pitch', ({frequency, db}) => {
             setCurrentDb(db)
             setCurrentFrequency(frequency)
-            if(dbBoundRef.current > db){
+            // if(dbBoundRef.current > db ){
+            //     return
+            // }
+            if(dbMaxRef.current > db){
                 return
             }
 
+            dbMaxRef.current = db
             setFinalFrequency(Math.round(frequency))
         })
     }, []);
@@ -126,15 +132,15 @@ export default function Home() {
                        onChange={it => setUpperTensionBoundString(it.target.value)}/>
             </div>
 
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    DB bound
-                </div>
-                <input className={"font-sans text-white text-base border-white border-1 border-solid p-2 rounded"}
-                       type={"number"} value={dbBoundString}
-                       disabled={started}
-                       onChange={it => setDbBoundString(it.target.value)}/>
-            </div>
+            {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>*/}
+            {/*    <div className={"font-sans text-white text-base"}>*/}
+            {/*        DB bound*/}
+            {/*    </div>*/}
+            {/*    <input className={"font-sans text-white text-base border-white border-1 border-solid p-2 rounded"}*/}
+            {/*           type={"number"} value={dbBoundString}*/}
+            {/*           disabled={started}*/}
+            {/*           onChange={it => setDbBoundString(it.target.value)}/>*/}
+            {/*</div>*/}
             <div className={"flex flex-row items-center justify-start gap-4"}>
                 {started && <button
                     onClick={stopCallback}
