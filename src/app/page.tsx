@@ -65,7 +65,7 @@ export default function Home() {
     }, []);
 
     return (
-        <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4 overscroll-y-auto"}>
+        <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4"}>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
                 <div className={"font-sans text-white text-base"}>
                     Tension = {roundTo2Decimals(tension.newton)} N = {roundTo2Decimals(tension.kgf)} KGF
