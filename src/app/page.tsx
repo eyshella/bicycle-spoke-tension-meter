@@ -14,8 +14,10 @@ export default function Home() {
     const [upperTensionBoundString, setUpperTensionBoundString] = useState('150');
 
     const maxDbRef = useRef(-Infinity)
-    const [frequency, setFrequency] = useState(0);
-    const [db, setDB] = useState(0);
+    const [finalFrequency, setFinalFrequency] = useState(0);
+    const [finalDb, setFinalDb] = useState(0);
+    const [currentFrequency, setCurrentFrequency] = useState(0);
+    const [currentDb, setCurrentDb] = useState(0);
 
     const spokeDensity = useMemo(() => +spokeDensityString, [spokeDensityString])
     const spokeLength = useMemo(() => +spokeLengthString / 1000, [spokeLengthString])
@@ -26,12 +28,14 @@ export default function Home() {
     const upperFrequencyBound = useMemo(() => SpokeTension.fromKGS(upperTensionBound).toFrequency(spokeMass, spokeLength), [upperTensionBound, spokeMass, spokeLength])
 
     const tension = useMemo(() => {
-        return SpokeTension.fromFrequency(frequency, spokeMass, spokeLength)
-    }, [frequency, spokeLength, spokeMass])
+        return SpokeTension.fromFrequency(finalFrequency, spokeMass, spokeLength)
+    }, [finalFrequency, spokeLength, spokeMass])
 
     const startCallback = useCallback(async () => {
-        setFrequency(0)
-        setDB(0)
+        setFinalFrequency(0)
+        setCurrentFrequency(0)
+        setFinalDb(0)
+        setCurrentDb(0)
         if (pitchDetectorRef.current.started) {
             await pitchDetectorRef.current.stop()
         }
@@ -49,10 +53,12 @@ export default function Home() {
 
     useEffect(() => {
         pitchDetectorRef.current.addListener('pitch', ({frequency, db}) => {
+            setCurrentDb(db)
+            setCurrentFrequency(frequency)
             if (maxDbRef.current <= db) {
                 maxDbRef.current = db
-                setDB(db)
-                setFrequency(Math.round(frequency))
+                setFinalDb(db)
+                setFinalFrequency(Math.round(frequency))
             }
         })
     }, []);
@@ -60,17 +66,24 @@ export default function Home() {
     return (
         <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4"}>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-center text-white text-base"}>
+                <div className={"font-sans text-white text-base"}>
                     Tension = {roundTo2Decimals(tension.newton)} N = {roundTo2Decimals(tension.kgf)} KGF
                 </div>
-                <div className={"font-sans text-center text-white text-base"}>
-                    Frequency = {frequency} HZ
+                <div className={"font-sans text-white text-base"}>
+                    Final Frequency = {finalFrequency} HZ
                 </div>
-                <div className={"font-sans text-center text-white text-base"}>
-                    DB = {roundTo2Decimals(db)}
+                <div className={"font-sans text-white text-base"}>
+                    Final DB = {roundTo2Decimals(finalDb)}
                 </div>
-                <div className={"font-sans text-center text-white text-base"}>
-                    Frequency bound = [{roundTo2Decimals(lowerFrequencyBound)}, {roundTo2Decimals(upperFrequencyBound)}] KGF
+                <div className={"font-sans text-white text-base"}>
+                    Current Frequency = {currentFrequency} HZ
+                </div>
+                <div className={"font-sans text-white text-base"}>
+                    Current DB = {roundTo2Decimals(currentDb)}
+                </div>
+                <div className={"font-sans text-white text-base"}>
+                    Frequency Bound = [{roundTo2Decimals(lowerFrequencyBound)}, {roundTo2Decimals(upperFrequencyBound)}]
+                    HZ
                 </div>
             </div>
 
