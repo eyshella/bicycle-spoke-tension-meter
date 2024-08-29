@@ -3,6 +3,9 @@ import EventEmitter from "events";
 const SAMPLE_RATE = 48000
 const FFT_SIZE = 32768
 
+export type PitchDetectorStartOptions = {
+    bounds?: [number, number]
+}
 export type PitchDetectedEvent = {
     frequency: number;
     db: number
@@ -23,6 +26,7 @@ type PitchDetectorState = {
     buffer: Float32Array
     bufferLength: number
     animationFrameRequestId?: number
+    bounds?: [number, number]
 }
 
 export class PitchDetector {
@@ -33,7 +37,7 @@ export class PitchDetector {
         return !!this.state
     }
 
-    public async start(): Promise<void> {
+    public async start(options?: PitchDetectorStartOptions): Promise<void> {
         try {
             const audioContext = new AudioContext({sampleRate: SAMPLE_RATE});
             const stream = await navigator.mediaDevices.getUserMedia(
@@ -61,7 +65,8 @@ export class PitchDetector {
                 analyser,
                 mediaStreamSource,
                 buffer: new Float32Array(bufferLength),
-                bufferLength
+                bufferLength,
+                bounds: options?.bounds
             }
             this.updatePitchLoop();
         } catch (e) {
@@ -104,18 +109,24 @@ export class PitchDetector {
             }
 
             this.state.analyser.getFloatFrequencyData(this.state.buffer);
-            let frequencyIndex = -1
             let maxDb = -Infinity
+            let maxFrequency = -1
             this.state.buffer.forEach((db, index) => {
+                const frequencyBinCount = this.state?.analyser.frequencyBinCount ?? 0
+                const [leftBound, rightBound] = this.state?.bounds ?? [0, Infinity]
+                const frequency = index*SAMPLE_RATE/(2* frequencyBinCount)
+                if(frequency > rightBound || frequency<leftBound || db <= maxDb){
+                    return
+                }
+
                 if(db > maxDb){
                     maxDb = db
-                    frequencyIndex = index
+                    maxFrequency = frequency
                 }
             })
 
-            const frequency = frequencyIndex*SAMPLE_RATE/(2* this.state.analyser.frequencyBinCount)
-            if (frequencyIndex !== -1) {
-                this.eventEmitter.emit('pitch', {frequency, db: maxDb})
+            if (maxFrequency !== -1) {
+                this.eventEmitter.emit('pitch', {frequency: maxFrequency, db: maxDb})
             }
 
             this.state.animationFrameRequestId = requestAnimationFrame(this.updatePitchLoop.bind(this));
