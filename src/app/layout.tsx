@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "@/styling/global.scss";
+import classNames from "classnames";
 
 const font = Roboto({ subsets: ["latin"], weight: ['100', '300', '400', '500', '700', '900'] });
 
@@ -23,7 +24,7 @@ export default function RootLayout({
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
       <link rel="manifest" href="/site.webmanifest"/>
     </head>
-    <body className={font.className}>{children}</body>
+    <body className={classNames(font.className, 'bg-blue-950')}>{children}</body>
     </html>
   );
 }
