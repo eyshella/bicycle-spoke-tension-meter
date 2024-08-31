@@ -67,22 +67,22 @@ export default function Home() {
             return
         }
 
+
+        const barOffset = 1
         const cw = canvas.width;
         const ch = canvas.height;
 
-        ctx.clearRect(0, 0, cw, ch)
-
-        const barWidth = (cw / sortedSpectre.length);
+        const barWidth = (cw / sortedSpectre.length - barOffset);
         const minDb = -150
 
+        ctx.clearRect(0, 0, cw, ch)
         for (let i = 0; i < sortedSpectre.length; i++) {
             const [frequency, db] = sortedSpectre[i]
             const barHeight = ch * (1 - db / minDb)
-            const x = i * (barWidth + 1)
+            const x = i * (barWidth + barOffset)
             const y = ch - barHeight
             ctx.fillStyle = "rgb(34 197 94)";
             ctx.fillRect(x, y, barWidth, barHeight);
-            console.log('A!')
         }
 
     }, []);
