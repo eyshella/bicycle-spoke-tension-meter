@@ -3,23 +3,23 @@ import EventEmitter from "events";
 const SAMPLE_RATE = 8000
 const FFT_SIZE = 8192
 
-export type PitchDetectorStartOptions = {
+export type AudioSpectrometerStartOptions = {
     bounds?: [number, number]
 }
-export type PitchDetectedEvent = {
-    frequency: number;
-    db: number
+export type SpectreReadyEvent = {
+    spectre: Array<[number, number]>; //[frequency, amplitude]
+    timestamp: number;
 }
-export type PitchDetectionErrorEvent = {
+export type SpectreReadErrorEvent = {
     error: Error;
 }
-export type PitchDetectorEventName = 'pitch' | 'error'
-export type PitchDetectorEventsMap = {
-    pitch: PitchDetectedEvent,
-    error: PitchDetectionErrorEvent
+export type AudioSpectrometerEventName = 'spectre' | 'error'
+export type AudioSpectrometerEventsMap = {
+    spectre: SpectreReadyEvent,
+    error: SpectreReadErrorEvent
 }
-type EventMap = Record<PitchDetectorEventName, any>;
-type PitchDetectorState = {
+type EventMap = Record<AudioSpectrometerEventName, any>;
+type AudioSpectrometerState = {
     audioContext: AudioContext
     mediaStreamSource: MediaStreamAudioSourceNode
     analyser: AnalyserNode
@@ -29,15 +29,15 @@ type PitchDetectorState = {
     bounds?: [number, number]
 }
 
-export class PitchDetector {
-    private state: PitchDetectorState | undefined
+export class AudioSpectrometer {
+    private state: AudioSpectrometerState | undefined
     private eventEmitter = new EventEmitter<any>()
 
-    public get started(): boolean{
+    public get started(): boolean {
         return !!this.state
     }
 
-    public async start(options?: PitchDetectorStartOptions): Promise<void> {
+    public async start(options?: AudioSpectrometerStartOptions): Promise<void> {
         try {
             const audioContext = new AudioContext({sampleRate: SAMPLE_RATE});
             const stream = await navigator.mediaDevices.getUserMedia(
@@ -68,7 +68,7 @@ export class PitchDetector {
                 bufferLength,
                 bounds: options?.bounds
             }
-            this.updatePitchLoop();
+            this.updateSpectreLoop(0);
         } catch (e) {
             this.eventEmitter.emit('error', {error: e});
         }
@@ -94,42 +94,36 @@ export class PitchDetector {
         }
     }
 
-    public addListener<T extends PitchDetectorEventName>(event: T, listener: (event: PitchDetectorEventsMap[T]) => void): void {
+    public addListener<T extends AudioSpectrometerEventName>(event: T, listener: (event: AudioSpectrometerEventsMap[T]) => void): void {
         this.eventEmitter.addListener(event, listener)
     }
 
-    public removeListener<T extends PitchDetectorEventName>(event: T, listener: (event: PitchDetectorEventsMap[T]) => void): void {
+    public removeListener<T extends AudioSpectrometerEventName>(event: T, listener: (event: AudioSpectrometerEventsMap[T]) => void): void {
         this.eventEmitter.removeListener(event, listener)
     }
 
-    private updatePitchLoop() {
+    private updateSpectreLoop(timestamp: number) {
         try {
             if (!this.state) {
                 return
             }
 
             this.state.analyser.getFloatFrequencyData(this.state.buffer);
-            let maxDb = -Infinity
-            let maxFrequency = -1
+            const spectre: Array<[number, number]> = []
             this.state.buffer.forEach((db, index) => {
                 const frequencyBinCount = this.state?.analyser.frequencyBinCount ?? 0
                 const [leftBound, rightBound] = this.state?.bounds ?? [0, Infinity]
-                const frequency = index*SAMPLE_RATE/(2* frequencyBinCount)
-                if(frequency > rightBound || frequency<leftBound || db <= maxDb){
+                const frequency = index * SAMPLE_RATE / (2 * frequencyBinCount)
+                if (frequency > rightBound || frequency < leftBound) {
                     return
                 }
 
-                if(db > maxDb){
-                    maxDb = db
-                    maxFrequency = frequency
-                }
+                spectre.push([frequency, db])
             })
 
-            if (maxFrequency !== -1) {
-                this.eventEmitter.emit('pitch', {frequency: maxFrequency, db: maxDb})
-            }
+            this.eventEmitter.emit('spectre', {spectre, timestamp})
 
-            this.state.animationFrameRequestId = requestAnimationFrame(this.updatePitchLoop.bind(this));
+            this.state.animationFrameRequestId = requestAnimationFrame(this.updateSpectreLoop.bind(this));
         } catch (e) {
             this.eventEmitter.emit('error', {error: e});
         }
