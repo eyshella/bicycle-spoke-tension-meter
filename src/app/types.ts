@@ -1,6 +1,7 @@
 export type TensionMeterSettings = {
-    spokeLength: number;
-    spokeDensity: number;
-    tensionBound: [number, number];
-    averagingPeriod: number;
+    spokeLength_MM: number;
+    spokeDensity_KG_M3: number;
+    lowerTensionBound_KGF: number;
+    upperTensionBound_KGF: number;
+    averagingPeriod_MS: number;
 }
