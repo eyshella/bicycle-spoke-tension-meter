@@ -4,6 +4,7 @@ import {round} from "lodash";
 import Chart from 'chart.js/auto';
 
 const MIN_DB = -150
+const CHART_X_TICKS_AMOUNT = 10
 
 type Props = {
     spokeLength_MM: number
@@ -18,8 +19,7 @@ type Props = {
     onAveragingPeriod_MS_Change: (value: number) => void
     spectre_KGF_DB: Array<[number, number]>
     frequency_HZ: number
-    tension_KGS: number
-    tension_N: number
+    tension_KGF: number
     lowerFrequencyBound_HZ: number,
     upperFrequencyBound_HZ: number,
     started: boolean
@@ -40,8 +40,7 @@ export const HomePageView = memo((props: Props) => {
         averagingPeriod_MS,
         onAveragingPeriod_MS_Change,
         spectre_KGF_DB,
-        tension_KGS,
-        tension_N,
+        tension_KGF,
         started,
         onStart,
         onStop
@@ -62,22 +61,31 @@ export const HomePageView = memo((props: Props) => {
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        colors: {
+                            enabled: true
                         }
                     },
                     scales: {
                         y: {
                             type: 'linear',
                             min: 0,
-                            max: 150,
+                            max: -MIN_DB,
                             display: false,
                             grid: {
                                 display: false
                             }
                         },
                         x: {
+                            type: 'linear',
+                            min: lowerTensionBound_KGF,
+                            max: upperTensionBound_KGF,
                             display: true,
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                stepSize: round((upperTensionBound_KGF - lowerTensionBound_KGF) / CHART_X_TICKS_AMOUNT)
                             }
                         }
                     },
@@ -85,10 +93,11 @@ export const HomePageView = memo((props: Props) => {
             }
         )
 
+        console.log(lowerTensionBound_KGF, upperTensionBound_KGF)
         return () => {
             chart.current?.destroy()
         }
-    }, [])
+    }, [lowerTensionBound_KGF, upperTensionBound_KGF])
 
     useEffect(() => {
         if (!chart.current) {
@@ -97,9 +106,11 @@ export const HomePageView = memo((props: Props) => {
 
         chart.current.data = {
             labels: spectre_KGF_DB.map(([frequency]) => round(frequency, 0)),
-            datasets: [{
-                data: spectre_KGF_DB.map(([, db]) => db - MIN_DB),
-            }]
+            datasets: [
+                {
+                    data: spectre_KGF_DB.map(([, db]) => db - MIN_DB),
+                },
+            ]
         }
         chart.current.update('none')
     }, [spectre_KGF_DB]);
@@ -107,8 +118,8 @@ export const HomePageView = memo((props: Props) => {
     return (
         <main className={"flex flex-col items-center justify-start w-full bg-blue-950 text-white p-4"}>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-base"}>
-                    Tension = {round(tension_KGS, 2)} N = {round(tension_N, 2)} KGF
+                <div className={"font-sans text-white text-2xl"}>
+                    Tension = {round(tension_KGF, 2)} KGF
                 </div>
                 {/*<div className={"font-sans text-white text-base"}>*/}
                 {/*    Frequency = {round(frequency_HZ, 2)} HZ*/}

@@ -143,8 +143,7 @@ export default function HomePage() {
         spokeLength_MM={spokeLength_MM}
         onSpokeLength_MM_Change={setSpokeLength_MM}
         spectre_KGF_DB={spectre_KGF_DB}
-        tension_KGS={tension.kgf}
-        tension_N={tension.newton}
+        tension_KGF={tension.kgf}
         frequency_HZ={frequency_HZ}
         lowerFrequencyBound_HZ={lowerFrequencyBound_HZ}
         upperFrequencyBound_HZ={upperFrequencyBound_HZ}
