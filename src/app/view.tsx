@@ -40,11 +40,8 @@ export const HomePageView = memo((props: Props) => {
         averagingPeriod_MS,
         onAveragingPeriod_MS_Change,
         spectre_KGF_DB,
-        frequency_HZ,
         tension_KGS,
         tension_N,
-        lowerFrequencyBound_HZ,
-        upperFrequencyBound_HZ,
         started,
         onStart,
         onStop
