@@ -5,7 +5,6 @@ import {SpokeTension} from "@/core/spoke-tension";
 import {maxBy} from "lodash";
 import {SignalAveraging} from "@/core/signal-averaging";
 import {HomePageView} from "@/app/view";
-import {TensionMeterSettings} from "@/app/types";
 
 const DEFAULT_SPOKE_LENGTH_MM = 191
 const DEFAULT_SPOKE_DENSITY_KG_M3 = 0.024
