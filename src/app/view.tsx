@@ -93,7 +93,6 @@ export const HomePageView = memo((props: Props) => {
             }
         )
 
-        console.log(lowerTensionBound_KGF, upperTensionBound_KGF)
         return () => {
             chart.current?.destroy()
         }
