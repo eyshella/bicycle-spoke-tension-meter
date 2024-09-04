@@ -2,191 +2,91 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {AudioSpectrometer} from "@/core/audio-spectrometer";
 import {SpokeTension} from "@/core/spoke-tension";
-import {maxBy, sortBy} from "lodash";
+import {maxBy} from "lodash";
 import {SignalAveraging} from "@/core/signal-averaging";
+import {HomePageView} from "@/app/view";
 
 const DEFAULT_AVERAGING_PERIOD = 1000
-const roundTo2Decimals = (value: number) => Math.round(value * 100) / 100
 
-export default function Home() {
+export default function HomePage() {
     const pitchDetectorRef = useRef(new AudioSpectrometer())
     const signalAveragingRef = useRef(new SignalAveraging(DEFAULT_AVERAGING_PERIOD))
-    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [started, setStarted] = useState(false);
-    const [spokeLengthString, setSpokeLengthString] = useState('298');
-    const [spokeDensityString, setSpokeDensityString] = useState('0.048');
-    const [lowerTensionBoundString, setLowerTensionBoundString] = useState('50');
-    const [upperTensionBoundString, setUpperTensionBoundString] = useState('150');
-    const [averagingPeriod, setAveragingPeriod] = useState(`${DEFAULT_AVERAGING_PERIOD}`);
+    const [spokeLength_MM, setSpokeLength_MM] = useState(298);
+    const [spokeDensity_KG_M3, setSpokeDensity_KG_M3] = useState(0.048);
+    const [lowerTensionBound_KGF, setLowerTensionBound_KGF] = useState(50);
+    const [upperTensionBound_KGF, setUpperTensionBound_KGF] = useState(150);
+    const [averagingPeriod_MS, setAveragingPeriod_MS] = useState(DEFAULT_AVERAGING_PERIOD);
 
-    const [spectre, setSpectre] = useState<Array<[number, number]>>([]);
+    const [spectre_HZ_DB, setSpectre_HZ_DB] = useState<Array<[number, number]>>([]);
 
-    const frequency = useMemo(() => maxBy(spectre, it => it[1])?.[0] ?? 0, [spectre])
-    const spokeDensity = useMemo(() => +spokeDensityString, [spokeDensityString])
-    const spokeLength = useMemo(() => +spokeLengthString / 1000, [spokeLengthString])
-    const spokeMass = useMemo(() => spokeLength * spokeDensity, [spokeLength, spokeDensity])
-    const lowerTensionBound = useMemo(() => +lowerTensionBoundString, [lowerTensionBoundString])
-    const upperTensionBound = useMemo(() => +upperTensionBoundString, [upperTensionBoundString])
-    const lowerFrequencyBound = useMemo(() => SpokeTension.fromKGS(lowerTensionBound).toFrequency(spokeMass, spokeLength), [lowerTensionBound, spokeMass, spokeLength])
-    const upperFrequencyBound = useMemo(() => SpokeTension.fromKGS(upperTensionBound).toFrequency(spokeMass, spokeLength), [upperTensionBound, spokeMass, spokeLength])
+    const frequency_HZ = useMemo(() => maxBy(spectre_HZ_DB, it => it[1])?.[0] ?? 0, [spectre_HZ_DB])
+    const spokeLength_M = useMemo(() => spokeLength_MM / 1000, [spokeLength_MM])
+    const spokeMass_KG = useMemo(() => spokeLength_M * spokeDensity_KG_M3, [spokeLength_M, spokeDensity_KG_M3])
+    const lowerFrequencyBound_HZ = useMemo(
+        () => SpokeTension.fromKGS(lowerTensionBound_KGF).toFrequency(spokeMass_KG, spokeLength_M),
+        [lowerTensionBound_KGF, spokeMass_KG, spokeLength_M]
+    )
+    const upperFrequencyBound_HZ = useMemo(
+        () => SpokeTension.fromKGS(upperTensionBound_KGF).toFrequency(spokeMass_KG, spokeLength_M),
+        [upperTensionBound_KGF, spokeMass_KG, spokeLength_M]
+    )
 
-    const maxDbTension = useMemo(
-        () => SpokeTension.fromFrequency(frequency, spokeMass, spokeLength),
-        [frequency, spokeLength, spokeMass]
+    const tension = useMemo(
+        () => SpokeTension.fromFrequency(frequency_HZ, spokeMass_KG, spokeLength_M),
+        [frequency_HZ, spokeLength_M, spokeMass_KG]
     )
 
     const startCallback = useCallback(async () => {
-        setSpectre([])
+        setSpectre_HZ_DB([])
         if (pitchDetectorRef.current.started) {
             await pitchDetectorRef.current.stop()
         }
 
         await pitchDetectorRef.current.start({
-            bounds: [lowerFrequencyBound, upperFrequencyBound],
+            bounds: [lowerFrequencyBound_HZ, upperFrequencyBound_HZ],
         })
         setStarted(true);
-    }, [lowerFrequencyBound, upperFrequencyBound])
+    }, [lowerFrequencyBound_HZ, upperFrequencyBound_HZ])
 
     const stopCallback = useCallback(async () => {
         await pitchDetectorRef.current.stop()
         setStarted(false);
     }, [])
 
-    const drawSpectre = useCallback((spectre: Array<[number, number]>) => {
-        const sortedSpectre = sortBy(spectre, it => it[0])
-        const canvas = canvasRef.current
-
-        if (!canvas) {
-            return
-        }
-
-        const ctx = canvas.getContext("2d");
-
-        if (!ctx) {
-            return
-        }
-
-
-        const barOffset = 1
-        const cw = canvas.width;
-        const ch = canvas.height;
-
-        const barWidth = (cw / sortedSpectre.length - barOffset);
-        const minDb = -150
-
-        ctx.clearRect(0, 0, cw, ch)
-        for (let i = 0; i < sortedSpectre.length; i++) {
-            const [frequency, db] = sortedSpectre[i]
-            const barHeight = ch * (1 - db / minDb)
-            const x = i * (barWidth + barOffset)
-            const y = ch - barHeight
-            ctx.fillStyle = "rgb(34 197 94)";
-            ctx.fillRect(x, y, barWidth, barHeight);
-        }
-
-    }, []);
-
     useEffect(() => {
-        signalAveragingRef.current = new SignalAveraging(+averagingPeriod)
-    }, [averagingPeriod]);
+        signalAveragingRef.current = new SignalAveraging(+averagingPeriod_MS)
+    }, [averagingPeriod_MS]);
 
     useEffect(() => {
         pitchDetectorRef.current.addListener('spectre', ({spectre, timestamp}) => {
             signalAveragingRef.current.addInput(spectre, timestamp)
             const averaged = signalAveragingRef.current.output
 
-            setSpectre(averaged)
-            drawSpectre(averaged)
+            setSpectre_HZ_DB(averaged)
         })
     }, []);
 
-    return (
-        <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4"}>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    Tension = {roundTo2Decimals(maxDbTension.newton)} N = {roundTo2Decimals(maxDbTension.kgf)} KGF
-                </div>
-                <div className={"font-sans text-white text-base"}>
-                    Frequency = {roundTo2Decimals(frequency)} HZ
-                </div>
-                <div className={"font-sans text-white text-base"}>
-                    Frequency Bound = [{roundTo2Decimals(lowerFrequencyBound)}, {roundTo2Decimals(upperFrequencyBound)}]
-                    HZ
-                </div>
-            </div>
-
-            <div className={"flex flex-col items-center justify-center w-96 h-96 mb-12"}>
-                <canvas className={"size-full border-solid border-2 border-green-500"} ref={canvasRef}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    Spoke length (mm)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={spokeLengthString}
-                       disabled={started}
-                       onChange={it => setSpokeLengthString(it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    Specific spoke density (kg/m)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={spokeDensityString}
-                       disabled={started}
-                       onChange={it => setSpokeDensityString(it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    Lower tension bound (kgf)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={lowerTensionBoundString}
-                       disabled={started}
-                       onChange={it => setLowerTensionBoundString(it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    Upper tension bound (kgf)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={upperTensionBoundString}
-                       disabled={started}
-                       onChange={it => setUpperTensionBoundString(it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
-                <div className={"font-sans text-white text-base"}>
-                    Averaging period (ms)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={averagingPeriod}
-                       disabled={started}
-                       onChange={it => setAveragingPeriod(it.target.value)}/>
-            </div>
-
-            {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>*/}
-            {/*    <div className={"font-sans text-white text-base"}>*/}
-            {/*        DB bound*/}
-            {/*    </div>*/}
-            {/*    <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}*/}
-            {/*           type={"number"} value={dbBoundString}*/}
-            {/*           disabled={started}*/}
-            {/*           onChange={it => setDbBoundString(it.target.value)}/>*/}
-            {/*</div>*/}
-            <div className={"flex flex-row items-center justify-start gap-4"}>
-                {started && <button
-                    onClick={stopCallback}
-                    className={"border-2 border-solid border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 active:border-red-700 active:text-red-700 p-2 cursor-pointer rounded"}>
-                    Stop
-                </button>}
-
-                {!started && <button
-                    disabled={started}
-                    onClick={startCallback}
-                    className={"border-2 border-solid border-green-500 text-green-500 hover:border-green-600 hover:text-green-600 active:border-green-700 active:text-green-700 p-2 cursor-pointer rounded"}>Start
-                </button>}
-            </div>
-        </main>
-    );
+    return <HomePageView
+     started={started}
+     onStop={stopCallback}
+     onStart={startCallback}
+     averagingPeriod_MS={+averagingPeriod_MS}
+     onAveragingPeriod_MS_Change={setAveragingPeriod_MS}
+     lowerTensionBound_KGF={lowerTensionBound_KGF}
+     onLowerTensionBound_KGF_Change={setLowerTensionBound_KGF}
+     upperTensionBound_KGF={upperTensionBound_KGF}
+     onUpperTensionBound_KGF_Change={setUpperTensionBound_KGF}
+     spokeDensity_KG_M3={spokeDensity_KG_M3}
+     onSpokeDensity_KG_M3_Change={setSpokeDensity_KG_M3}
+     spokeLength_MM={spokeLength_MM}
+     onSpokeLength_MM_Change={setSpokeLength_MM}
+     spectre_HZ_DB={spectre_HZ_DB}
+     tension_KGS={tension.kgf}
+     tension_N={tension.newton}
+     frequency_HZ={frequency_HZ}
+     lowerFrequencyBound_HZ={lowerFrequencyBound_HZ}
+     upperFrequencyBound_HZ={upperFrequencyBound_HZ}
+    />;
 }
