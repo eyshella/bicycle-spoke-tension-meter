@@ -1,7 +1,7 @@
 "use client"
-import {memo, useCallback, useEffect, useRef} from "react";
-import {sortBy, round} from "lodash";
-import Chart, {ChartDataset} from 'chart.js/auto';
+import {memo, useEffect, useRef} from "react";
+import {round} from "lodash";
+import Chart from 'chart.js/auto';
 
 const MIN_DB = -150
 
@@ -101,14 +101,14 @@ export const HomePageView = memo((props: Props) => {
         chart.current.data = {
             labels: spectre_KGF_DB.map(([frequency]) => round(frequency, 0)),
             datasets: [{
-                data: spectre_KGF_DB.map(([, db]) => db-MIN_DB),
+                data: spectre_KGF_DB.map(([, db]) => db - MIN_DB),
             }]
         }
         chart.current.update('none')
     }, [spectre_KGF_DB]);
 
     return (
-        <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4"}>
+        <main className={"flex flex-col items-center justify-start w-full bg-blue-950 text-white p-4"}>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Tension = {round(tension_KGS, 2)} N = {round(tension_N, 2)} KGF
@@ -122,7 +122,7 @@ export const HomePageView = memo((props: Props) => {
                 {/*</div>*/}
             </div>
 
-            <div className={"flex flex-col items-center justify-center w-96 mb-6"}>
+            <div className={"flex flex-col items-center justify-center w-96 max-w-full mb-6"}>
                 <canvas className={"size-full"} ref={canvasRef}/>
             </div>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
