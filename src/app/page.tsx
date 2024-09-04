@@ -78,12 +78,13 @@ export default function HomePage() {
 
     useEffect(() => {
         try {
-            const settingsString: string | null = localStorage.getItem(TENSION_METER_SETTINGS_STORAGE_KEY)
-            const settings: TensionMeterSettings | undefined = settingsString ? JSON.parse(settingsString) : null
+            const settingsString = localStorage.getItem(TENSION_METER_SETTINGS_STORAGE_KEY)
+            const settings = settingsString ? JSON.parse(settingsString) : null
 
             if (!settings) {
                 return
             }
+
             setSpokeLength_MM(settings.spokeLength_MM ?? DEFAULT_SPOKE_LENGTH_MM)
             setSpokeDensity_KG_M3(settings.spokeDensity_KG_M3 ?? DEFAULT_SPOKE_DENSITY_KG_M3)
             setLowerTensionBound_KGF(settings.lowerTensionBound_KGF ?? DEFAULT_LOWER_TENSION_BOUND_KGF)
@@ -101,19 +102,13 @@ export default function HomePage() {
             return
         }
 
-        try {
-            const settings: TensionMeterSettings = {
-                spokeLength_MM,
-                spokeDensity_KG_M3,
-                lowerTensionBound_KGF,
-                upperTensionBound_KGF,
-                averagingPeriod_MS
-            }
-
-            localStorage.setItem(TENSION_METER_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
-        } catch (e) {
-            console.log(`Local storage write error ${e}`)
-        }
+        localStorage.setItem(TENSION_METER_SETTINGS_STORAGE_KEY, JSON.stringify({
+            spokeLength_MM,
+            spokeDensity_KG_M3,
+            lowerTensionBound_KGF,
+            upperTensionBound_KGF,
+            averagingPeriod_MS
+        }))
     }, [
         settingsLoaded,
         spokeLength_MM,
