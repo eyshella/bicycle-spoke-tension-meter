@@ -45,6 +45,13 @@ export default function HomePage() {
         [frequency_HZ, spokeLength_M, spokeMass_KG]
     )
 
+    const spectre_KGF_DB: Array<[number, number]> = useMemo(
+        () => spectre_HZ_DB.map(
+            ([frequency, db]) => [SpokeTension.fromFrequency(frequency, spokeMass_KG, spokeLength_M).kgf, db]
+        ),
+        [spectre_HZ_DB, spokeMass_KG, spokeLength_M]
+    )
+
     const startCallback = useCallback(async () => {
         setSpectre_HZ_DB([])
         if (pitchDetectorRef.current.started) {
@@ -135,7 +142,7 @@ export default function HomePage() {
         onSpokeDensity_KG_M3_Change={setSpokeDensity_KG_M3}
         spokeLength_MM={spokeLength_MM}
         onSpokeLength_MM_Change={setSpokeLength_MM}
-        spectre_HZ_DB={spectre_HZ_DB}
+        spectre_KGF_DB={spectre_KGF_DB}
         tension_KGS={tension.kgf}
         tension_N={tension.newton}
         frequency_HZ={frequency_HZ}

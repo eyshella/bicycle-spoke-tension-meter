@@ -1,6 +1,9 @@
 "use client"
 import {memo, useCallback, useEffect, useRef} from "react";
 import {sortBy, round} from "lodash";
+import Chart, {ChartDataset} from 'chart.js/auto';
+
+const MIN_DB = -150
 
 type Props = {
     spokeLength_MM: number
@@ -13,7 +16,7 @@ type Props = {
     onUpperTensionBound_KGF_Change: (value: number) => void
     averagingPeriod_MS: number
     onAveragingPeriod_MS_Change: (value: number) => void
-    spectre_HZ_DB: Array<[number, number]>
+    spectre_KGF_DB: Array<[number, number]>
     frequency_HZ: number
     tension_KGS: number
     tension_N: number
@@ -36,7 +39,7 @@ export const HomePageView = memo((props: Props) => {
         onUpperTensionBound_KGF_Change,
         averagingPeriod_MS,
         onAveragingPeriod_MS_Change,
-        spectre_HZ_DB,
+        spectre_KGF_DB,
         frequency_HZ,
         tension_KGS,
         tension_N,
@@ -48,64 +51,81 @@ export const HomePageView = memo((props: Props) => {
     } = props
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    const drawSpectre = useCallback(() => {
-        const sortedSpectre = sortBy(spectre_HZ_DB, it => it[0])
-        const canvas = canvasRef.current
-
-        if (!canvas) {
-            return
-        }
-
-        const ctx = canvas.getContext("2d");
-
-        if (!ctx) {
-            return
-        }
-
-
-        const barOffset = 1
-        const cw = canvas.width;
-        const ch = canvas.height;
-
-        const barWidth = (cw / sortedSpectre.length - barOffset);
-        const minDb = -150
-
-        ctx.clearRect(0, 0, cw, ch)
-        for (let i = 0; i < sortedSpectre.length; i++) {
-            const [, db] = sortedSpectre[i]
-            const barHeight = ch * (1 - db / minDb)
-            const x = i * (barWidth + barOffset)
-            const y = ch - barHeight
-            ctx.fillStyle = "rgb(34 197 94)";
-            ctx.fillRect(x, y, barWidth, barHeight);
-        }
-
-    }, [spectre_HZ_DB]);
+    const chart = useRef<Chart>();
 
     useEffect(() => {
-        drawSpectre()
-    }, [spectre_HZ_DB, drawSpectre]);
+        chart.current = new Chart(
+            canvasRef.current!,
+            {
+                type: "bar",
+                data: {
+                    datasets: []
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            min: 0,
+                            max: 150,
+                            display: false,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                }
+            }
+        )
+
+        return () => {
+            chart.current?.destroy()
+        }
+    }, [])
+
+    useEffect(() => {
+        if (!chart.current) {
+            return
+        }
+
+        chart.current.data = {
+            labels: spectre_KGF_DB.map(([frequency]) => round(frequency, 0)),
+            datasets: [{
+                data: spectre_KGF_DB.map(([, db]) => db-MIN_DB),
+            }]
+        }
+        chart.current.update('none')
+    }, [spectre_KGF_DB]);
 
     return (
         <main className={"flex flex-col items-center justify-start size-full bg-blue-950 text-white p-4"}>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Tension = {round(tension_KGS, 2)} N = {round(tension_N, 2)} KGF
                 </div>
-                <div className={"font-sans text-white text-base"}>
-                    Frequency = {round(frequency_HZ, 2)} HZ
-                </div>
-                <div className={"font-sans text-white text-base"}>
-                    Frequency Bound = [{round(lowerFrequencyBound_HZ, 2)}, {round(upperFrequencyBound_HZ, 2)}]
-                    HZ
-                </div>
+                {/*<div className={"font-sans text-white text-base"}>*/}
+                {/*    Frequency = {round(frequency_HZ, 2)} HZ*/}
+                {/*</div>*/}
+                {/*<div className={"font-sans text-white text-base"}>*/}
+                {/*    Frequency Bound = [{round(lowerFrequencyBound_HZ, 2)}, {round(upperFrequencyBound_HZ, 2)}]*/}
+                {/*    HZ*/}
+                {/*</div>*/}
             </div>
 
-            <div className={"flex flex-col items-center justify-center w-96 h-96 mb-12"}>
-                <canvas className={"size-full border-solid border-2 border-green-500"} ref={canvasRef}/>
+            <div className={"flex flex-col items-center justify-center w-96 mb-6"}>
+                <canvas className={"size-full"} ref={canvasRef}/>
             </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Spoke length (mm)
                 </div>
@@ -114,7 +134,7 @@ export const HomePageView = memo((props: Props) => {
                        disabled={started}
                        onChange={it => onSpokeLength_MM_Change(+it.target.value)}/>
             </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Specific spoke density (kg/m)
                 </div>
@@ -123,7 +143,7 @@ export const HomePageView = memo((props: Props) => {
                        disabled={started}
                        onChange={it => onSpokeDensity_KG_M3_Change(+it.target.value)}/>
             </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Lower tension bound (kgf)
                 </div>
@@ -132,7 +152,7 @@ export const HomePageView = memo((props: Props) => {
                        disabled={started}
                        onChange={it => onLowerTensionBound_KGF_Change(+it.target.value)}/>
             </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Upper tension bound (kgf)
                 </div>
@@ -141,7 +161,7 @@ export const HomePageView = memo((props: Props) => {
                        disabled={started}
                        onChange={it => onUpperTensionBound_KGF_Change(+it.target.value)}/>
             </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>
+            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-base"}>
                     Averaging period (ms)
                 </div>
@@ -151,7 +171,7 @@ export const HomePageView = memo((props: Props) => {
                        onChange={it => onAveragingPeriod_MS_Change(+it.target.value)}/>
             </div>
 
-            {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-12"}>*/}
+            {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>*/}
             {/*    <div className={"font-sans text-white text-base"}>*/}
             {/*        DB bound*/}
             {/*    </div>*/}
