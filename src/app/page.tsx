@@ -11,6 +11,7 @@ const DEFAULT_SPOKE_DENSITY_KG_M3 = 0.024
 const DEFAULT_LOWER_TENSION_BOUND_KGF = 50
 const DEFAULT_UPPER_TENSION_BOUND_KGF = 150
 const DEFAULT_AVERAGING_PERIOD_MS = 1000
+const DEFAULT_AMPLITUDE_DEVIATION_THRESHOLD = 3.5
 
 const TENSION_METER_SETTINGS_STORAGE_KEY = 'tension_meter_settings'
 
@@ -56,19 +57,21 @@ export default function HomePage() {
 
     const amplitudeDeviation = useMemo(
         () => {
-            if(spectre_HZ_DB.length === 0){
+            if (spectre_HZ_DB.length === 0) {
                 return 0
             }
 
             const spectreValues_DB = spectre_HZ_DB.map(it => it[1])
             const spectreMean_DB = mean(spectreValues_DB)
             const sd_2 = spectreValues_DB.reduce((acc, curr) => {
-                return acc+((curr-spectreMean_DB)**2)/spectreValues_DB.length
+                return acc + ((curr - spectreMean_DB) ** 2) / spectreValues_DB.length
             }, 0)
-            return sd_2 > 0? Math.abs(amplitude_DB-spectreMean_DB)/Math.sqrt(sd_2): 0
+            return sd_2 > 0 ? Math.abs(amplitude_DB - spectreMean_DB) / Math.sqrt(sd_2) : 0
         },
         [spectre_HZ_DB, amplitude_DB]
     )
+
+    const amplitudeDeviationReliable = useMemo(() => amplitudeDeviation > DEFAULT_AMPLITUDE_DEVIATION_THRESHOLD, [amplitudeDeviation])
 
     const startCallback = useCallback(async () => {
         setSpectre_HZ_DB([])
@@ -166,5 +169,6 @@ export default function HomePage() {
         lowerFrequencyBound_HZ={lowerFrequencyBound_HZ}
         upperFrequencyBound_HZ={upperFrequencyBound_HZ}
         amplitudeDeviation={amplitudeDeviation}
+        amplitudeDeviationReliable={amplitudeDeviationReliable}
     />;
 }

@@ -1,19 +1,10 @@
 "use client"
-import {memo, useEffect, useRef} from "react";
-import {round} from "lodash";
+import {memo, useEffect, useMemo, useRef} from "react";
+import {ceil, floor, forOwn, groupBy, mean, round} from "lodash";
 import Chart from 'chart.js/auto';
 
 const MIN_DB = -150
 const CHART_X_TICKS_AMOUNT = 10
-export const CHART_COLORS = {
-    red: 'rgb(255, 99, 132)',
-    orange: 'rgb(255, 159, 64)',
-    yellow: 'rgb(255, 205, 86)',
-    green: 'rgb(75, 192, 192)',
-    blue: 'rgb(54, 162, 235)',
-    purple: 'rgb(153, 102, 255)',
-    grey: 'rgb(201, 203, 207)'
-};
 
 type Props = {
     spokeLength_MM: number
@@ -35,6 +26,7 @@ type Props = {
     started: boolean
     onStart: () => void
     onStop: () => void
+    amplitudeDeviationReliable: boolean
 }
 
 export const HomePageView = memo((props: Props) => {
@@ -50,11 +42,11 @@ export const HomePageView = memo((props: Props) => {
         averagingPeriod_MS,
         onAveragingPeriod_MS_Change,
         spectre_KGF_DB,
-        amplitudeDeviation,
         tension_KGF,
         started,
         onStart,
-        onStop
+        onStop,
+        amplitudeDeviationReliable
     } = props
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -85,7 +77,7 @@ export const HomePageView = memo((props: Props) => {
                             display: false,
                             grid: {
                                 display: false
-                            }
+                            },
                         },
                         x: {
                             type: 'linear',
@@ -109,32 +101,55 @@ export const HomePageView = memo((props: Props) => {
         }
     }, [lowerTensionBound_KGF, upperTensionBound_KGF])
 
+    const bars = useMemo(() => {
+        const result: Array<[number, number]> = []
+
+        const grouped = groupBy(spectre_KGF_DB, ([tension]) => round(tension))
+        forOwn(grouped, (group, tension) => {
+            const amplitudes = group.map(([, amplitude]) => amplitude)
+            result.push([+tension, mean(amplitudes)])
+        })
+
+        return result
+    }, [spectre_KGF_DB])
+
+    const barColors = useMemo(
+        () => bars.map(([tension]) => amplitudeDeviationReliable
+            ? ceil(tension) === ceil(tension_KGF) || floor(tension) === floor(tension_KGF)
+                ? 'green'
+                : 'blue'
+            : 'blue'
+        ),
+        [bars, tension_KGF, amplitudeDeviationReliable]
+    )
+
     useEffect(() => {
         if (!chart.current) {
             return
         }
 
         chart.current.data = {
-            labels: spectre_KGF_DB.map(([frequency]) => round(frequency, 0)),
+            labels: bars.map(([frequency]) => frequency),
             datasets: [
                 {
-                    data: spectre_KGF_DB.map(([, db]) => db - MIN_DB),
-                    backgroundColor: CHART_COLORS.blue
+                    data: bars.map(([,amplitude]) => amplitude-MIN_DB),
+                    backgroundColor: barColors,
+                    barThickness: 'flex'
                 },
             ]
         }
         chart.current.update('none')
-    }, [spectre_KGF_DB]);
+    }, [bars, barColors]);
 
     return (
         <main className={"flex flex-col items-center justify-start w-full bg-blue-950 text-white p-4"}>
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-2xl"}>
+                <div className={`font-sans text-${amplitudeDeviationReliable ? 'green-500' : 'white'} text-2xl`}>
                     Tension = {round(tension_KGF, 2)} KGF
                 </div>
-                <div className={"font-sans text-white text-2xl"}>
-                    Deviation = {round(amplitudeDeviation, 2)}
-                </div>
+                {/*<div className={"font-sans text-white text-2xl"}>*/}
+                {/*    Deviation = {round(amplitudeDeviation, 2)}*/}
+                {/*</div>*/}
                 {/*<div className={"font-sans text-white text-base"}>*/}
                 {/*    Frequency = {round(frequency_HZ, 2)} HZ*/}
                 {/*</div>*/}
