@@ -5,6 +5,15 @@ import Chart from 'chart.js/auto';
 
 const MIN_DB = -150
 const CHART_X_TICKS_AMOUNT = 10
+export const CHART_COLORS = {
+    red: 'rgb(255, 99, 132)',
+    orange: 'rgb(255, 159, 64)',
+    yellow: 'rgb(255, 205, 86)',
+    green: 'rgb(75, 192, 192)',
+    blue: 'rgb(54, 162, 235)',
+    purple: 'rgb(153, 102, 255)',
+    grey: 'rgb(201, 203, 207)'
+};
 
 type Props = {
     spokeLength_MM: number
@@ -18,6 +27,7 @@ type Props = {
     averagingPeriod_MS: number
     onAveragingPeriod_MS_Change: (value: number) => void
     spectre_KGF_DB: Array<[number, number]>
+    amplitudeDeviation: number
     frequency_HZ: number
     tension_KGF: number
     lowerFrequencyBound_HZ: number,
@@ -40,6 +50,7 @@ export const HomePageView = memo((props: Props) => {
         averagingPeriod_MS,
         onAveragingPeriod_MS_Change,
         spectre_KGF_DB,
+        amplitudeDeviation,
         tension_KGF,
         started,
         onStart,
@@ -108,6 +119,7 @@ export const HomePageView = memo((props: Props) => {
             datasets: [
                 {
                     data: spectre_KGF_DB.map(([, db]) => db - MIN_DB),
+                    backgroundColor: CHART_COLORS.blue
                 },
             ]
         }
@@ -119,6 +131,9 @@ export const HomePageView = memo((props: Props) => {
             <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                 <div className={"font-sans text-white text-2xl"}>
                     Tension = {round(tension_KGF, 2)} KGF
+                </div>
+                <div className={"font-sans text-white text-2xl"}>
+                    Deviation = {round(amplitudeDeviation, 2)}
                 </div>
                 {/*<div className={"font-sans text-white text-base"}>*/}
                 {/*    Frequency = {round(frequency_HZ, 2)} HZ*/}

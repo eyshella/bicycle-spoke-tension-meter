@@ -2,7 +2,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {AudioSpectrometer} from "@/core/audio-spectrometer";
 import {SpokeTension} from "@/core/spoke-tension";
-import {maxBy} from "lodash";
+import {maxBy, mean} from "lodash";
 import {SignalAveraging} from "@/core/signal-averaging";
 import {HomePageView} from "@/app/view";
 
@@ -29,6 +29,8 @@ export default function HomePage() {
     const [spectre_HZ_DB, setSpectre_HZ_DB] = useState<Array<[number, number]>>([]);
 
     const frequency_HZ = useMemo(() => maxBy(spectre_HZ_DB, it => it[1])?.[0] ?? 0, [spectre_HZ_DB])
+    const amplitude_DB = useMemo(() => maxBy(spectre_HZ_DB, it => it[1])?.[1] ?? 0, [spectre_HZ_DB])
+
     const spokeLength_M = useMemo(() => spokeLength_MM / 1000, [spokeLength_MM])
     const spokeMass_KG = useMemo(() => spokeLength_M * spokeDensity_KG_M3, [spokeLength_M, spokeDensity_KG_M3])
     const lowerFrequencyBound_HZ = useMemo(
@@ -50,6 +52,22 @@ export default function HomePage() {
             ([frequency, db]) => [SpokeTension.fromFrequency(frequency, spokeMass_KG, spokeLength_M).kgf, db]
         ),
         [spectre_HZ_DB, spokeMass_KG, spokeLength_M]
+    )
+
+    const amplitudeDeviation = useMemo(
+        () => {
+            if(spectre_HZ_DB.length === 0){
+                return 0
+            }
+
+            const spectreValues_DB = spectre_HZ_DB.map(it => it[1])
+            const spectreMean_DB = mean(spectreValues_DB)
+            const sd_2 = spectreValues_DB.reduce((acc, curr) => {
+                return acc+((curr-spectreMean_DB)**2)/spectreValues_DB.length
+            }, 0)
+            return sd_2 > 0? Math.abs(amplitude_DB-spectreMean_DB)/Math.sqrt(sd_2): 0
+        },
+        [spectre_HZ_DB, amplitude_DB]
     )
 
     const startCallback = useCallback(async () => {
@@ -147,5 +165,6 @@ export default function HomePage() {
         frequency_HZ={frequency_HZ}
         lowerFrequencyBound_HZ={lowerFrequencyBound_HZ}
         upperFrequencyBound_HZ={upperFrequencyBound_HZ}
+        amplitudeDeviation={amplitudeDeviation}
     />;
 }
