@@ -2,6 +2,9 @@
 import {memo, useEffect, useMemo, useRef} from "react";
 import {ceil, floor, forOwn, groupBy, mean, round} from "lodash";
 import Chart from 'chart.js/auto';
+import Button from '@mui/material/Button';
+import {blueGrey, deepOrange, green, grey, lightGreen, teal} from "@mui/material/colors";
+import {Card, CardContent, CardHeader, createTheme, TextField, ThemeProvider, Typography} from "@mui/material";
 
 const MIN_DB = -150
 const CHART_X_TICKS_AMOUNT = 10
@@ -28,6 +31,17 @@ type Props = {
     onStop: () => void
     amplitudeDeviationReliable: boolean
 }
+
+const darkTheme = createTheme({
+    palette: {
+        mode: 'dark',
+        primary: grey,
+        error: deepOrange,
+        background: {
+            paper: blueGrey[900],
+        }
+    }
+})
 
 export const HomePageView = memo((props: Props) => {
     const {
@@ -116,9 +130,9 @@ export const HomePageView = memo((props: Props) => {
     const barColors = useMemo(
         () => bars.map(([tension]) => amplitudeDeviationReliable
             ? ceil(tension) === ceil(tension_KGF) || floor(tension) === floor(tension_KGF)
-                ? 'green'
-                : 'blue'
-            : 'blue'
+                ? green['400']
+                : blueGrey[200]
+            : blueGrey[200]
         ),
         [bars, tension_KGF, amplitudeDeviationReliable]
     )
@@ -132,7 +146,7 @@ export const HomePageView = memo((props: Props) => {
             labels: bars.map(([frequency]) => frequency),
             datasets: [
                 {
-                    data: bars.map(([,amplitude]) => amplitude-MIN_DB),
+                    data: bars.map(([, amplitude]) => amplitude - MIN_DB),
                     backgroundColor: barColors,
                     barThickness: 'flex'
                 },
@@ -142,103 +156,109 @@ export const HomePageView = memo((props: Props) => {
     }, [bars, barColors]);
 
     return (
-        <main className={"flex flex-col items-center justify-start w-full bg-blue-950 text-white p-4"}>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={`font-sans text-${amplitudeDeviationReliable ? 'green-500' : 'white'} text-2xl`}>
-                    Tension = {round(tension_KGF, 2)} KGF
-                </div>
-                {/*<div className={"font-sans text-white text-2xl"}>*/}
-                {/*    Deviation = {round(amplitudeDeviation, 2)}*/}
-                {/*</div>*/}
-                {/*<div className={"font-sans text-white text-base"}>*/}
-                {/*    Frequency = {round(frequency_HZ, 2)} HZ*/}
-                {/*</div>*/}
-                {/*<div className={"font-sans text-white text-base"}>*/}
-                {/*    Frequency Bound = [{round(lowerFrequencyBound_HZ, 2)}, {round(upperFrequencyBound_HZ, 2)}]*/}
-                {/*    HZ*/}
-                {/*</div>*/}
-            </div>
-
-            <div className={"flex flex-col items-center justify-center w-96 max-w-full mb-6"}>
-                <canvas className={"size-full"} ref={canvasRef}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-base"}>
-                    Spoke length (mm)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={spokeLength_MM}
-                       disabled={started}
-                       onChange={it => onSpokeLength_MM_Change(+it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-base"}>
-                    Specific spoke density (kg/m)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={spokeDensity_KG_M3}
-                       disabled={started}
-                       onChange={it => onSpokeDensity_KG_M3_Change(+it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-base"}>
-                    Lower tension bound (kgf)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={lowerTensionBound_KGF}
-                       disabled={started}
-                       onChange={it => onLowerTensionBound_KGF_Change(+it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-base"}>
-                    Upper tension bound (kgf)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={upperTensionBound_KGF}
-                       disabled={started}
-                       onChange={it => onUpperTensionBound_KGF_Change(+it.target.value)}/>
-            </div>
-            <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                <div className={"font-sans text-white text-base"}>
-                    Averaging period (ms)
-                </div>
-                <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}
-                       type={"number"} value={averagingPeriod_MS}
-                       disabled={started}
-                       onChange={it => onAveragingPeriod_MS_Change(+it.target.value)}/>
-            </div>
-
-            {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>*/}
-            {/*    <div className={"font-sans text-white text-base"}>*/}
-            {/*        DB bound*/}
-            {/*    </div>*/}
-            {/*    <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}*/}
-            {/*           type={"number"} value={dbBoundString}*/}
-            {/*           disabled={started}*/}
-            {/*           onChange={it => setDbBoundString(it.target.value)}/>*/}
-            {/*</div>*/}
-
-            <div className={"flex flex-row items-center justify-start gap-4"}>
-                {started && (
-                    <button
-                        className={"border-2 border-solid border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 active:border-red-700 active:text-red-700 p-2 cursor-pointer rounded"}
-                        disabled={!started}
-                        onClick={onStop}
-                    >
-                        Stop
-                    </button>
-                )}
-
-                {!started && (
-                    <button
-                        className={"border-2 border-solid border-green-500 text-green-500 hover:border-green-600 hover:text-green-600 active:border-green-700 active:text-green-700 p-2 cursor-pointer rounded"}
+        <ThemeProvider theme={darkTheme}>
+            <main className={"flex flex-col items-center justify-start w-full p-4"}>
+                <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
+                    <TextField
+                        label="Spoke length (mm)"
+                        variant="outlined"
+                        color={"primary"}
+                        value={spokeLength_MM}
+                        onChange={it => onSpokeLength_MM_Change(+it.target.value)}
                         disabled={started}
-                        onClick={onStart}
-                    >
-                        Start
-                    </button>
-                )}
-            </div>
-        </main>
+                    />
+                </div>
+                <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
+                    <TextField
+                        label="Specific spoke density (kg/m)"
+                        variant="outlined"
+                        color={"primary"}
+                        value={spokeDensity_KG_M3}
+                        onChange={it => onSpokeDensity_KG_M3_Change(+it.target.value)}
+                        disabled={started}
+                    />
+                </div>
+                {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>*/}
+                {/*    <div className={"font-sans text-white text-base"}>*/}
+                {/*        Lower tension bound (kgf)*/}
+                {/*    </div>*/}
+                {/*    <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}*/}
+                {/*           type={"number"} value={lowerTensionBound_KGF}*/}
+                {/*           disabled={started}*/}
+                {/*           onChange={it => onLowerTensionBound_KGF_Change(+it.target.value)}/>*/}
+                {/*</div>*/}
+                {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>*/}
+                {/*    <div className={"font-sans text-white text-base"}>*/}
+                {/*        Upper tension bound (kgf)*/}
+                {/*    </div>*/}
+                {/*    <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}*/}
+                {/*           type={"number"} value={upperTensionBound_KGF}*/}
+                {/*           disabled={started}*/}
+                {/*           onChange={it => onUpperTensionBound_KGF_Change(+it.target.value)}/>*/}
+                {/*</div>*/}
+                {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>*/}
+                {/*    <div className={"font-sans text-white text-base"}>*/}
+                {/*        Averaging period (ms)*/}
+                {/*    </div>*/}
+                {/*    <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}*/}
+                {/*           type={"number"} value={averagingPeriod_MS}*/}
+                {/*           disabled={started}*/}
+                {/*           onChange={it => onAveragingPeriod_MS_Change(+it.target.value)}/>*/}
+                {/*</div>*/}
+
+                {/*<div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>*/}
+                {/*    <div className={"font-sans text-white text-base"}>*/}
+                {/*        DB bound*/}
+                {/*    </div>*/}
+                {/*    <input className={"font-sans text-white text-base border-white border-2 border-solid p-2 rounded"}*/}
+                {/*           type={"number"} value={dbBoundString}*/}
+                {/*           disabled={started}*/}
+                {/*           onChange={it => setDbBoundString(it.target.value)}/>*/}
+                {/*</div>*/}
+                <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
+                    <Card variant={'elevation'}>
+                        <CardHeader
+                            title={"Tension (kgf)"}
+                            titleTypographyProps={{
+                                variant: 'caption',
+                            }}
+                        />
+                        <CardContent>
+                            <div
+                                className={"flex flex-col items-center justify-center w-96 max-w-full mb-6 border-border-grey-500"}>
+                                <canvas className={"size-full"} ref={canvasRef}/>
+                            </div>
+                            <Typography textAlign={'center'} variant={'h5'} color={amplitudeDeviationReliable ? 'success' : 'primary'}>
+                                {round(tension_KGF, 2)}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                    {/*<TextField*/}
+                    {/*    label="Tension (kgf)"*/}
+                    {/*    variant="outlined"*/}
+                    {/*    color={amplitudeDeviationReliable ? 'success' : 'primary'}*/}
+                    {/*    value={round(tension_KGF, 2)}*/}
+                    {/*    disabled={!started}*/}
+                    {/*    focused*/}
+                    {/*/>*/}
+                    {/*<div className={"font-sans text-white text-2xl"}>*/}
+                    {/*    Deviation = {round(amplitudeDeviation, 2)}*/}
+                    {/*</div>*/}
+                    {/*<div className={"font-sans text-white text-base"}>*/}
+                    {/*    Frequency = {round(frequency_HZ, 2)} HZ*/}
+                    {/*</div>*/}
+                    {/*<div className={"font-sans text-white text-base"}>*/}
+                    {/*    Frequency Bound = [{round(lowerFrequencyBound_HZ, 2)}, {round(upperFrequencyBound_HZ, 2)}]*/}
+                    {/*    HZ*/}
+                    {/*</div>*/}
+                </div>
+                <div className={"flex flex-row items-center justify-start gap-4"}>
+                    <Button onClick={started ? onStop : onStart} variant={"contained"}
+                            color={started ? "error" : "success"}>
+                        {started ? "Stop" : "Start"}
+                    </Button>
+                </div>
+            </main>
+        </ThemeProvider>
     );
 })
