@@ -214,7 +214,7 @@ export const HomePageView = memo((props: Props) => {
                 </div>
                 <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                     <TextField
-                        label="Spoke length from nipple to other spoke cross (mm)"
+                        label="Spoke length from nipple to cross with other spoke (mm)"
                         variant="outlined"
                         color={"primary"}
                         value={spokeLength_MM}
