@@ -7,6 +7,9 @@ import {SignalAveraging} from "@/core/signal-averaging";
 import {HomePageView} from "@/app/view";
 import {SpokeMaterial} from "@/app/types";
 
+const GITHUB_URL = "https://github.com/eyshella/bicycle-spoke-tension-meter"
+const LICENSE_URL = "https://raw.githubusercontent.com/eyshella/bicycle-spoke-tension-meter/refs/heads/main/LICENSE"
+
 const DEFAULT_SPOKE_LENGTH_MM = 191
 const DEFAULT_SPOKE_DENSITY_KG_M3 = 0.024
 const DEFAULT_LOWER_TENSION_BOUND_KGF = 50
@@ -36,7 +39,9 @@ export default function HomePage() {
     const [averagingPeriod_MS, setAveragingPeriod_MS] = useState(DEFAULT_AVERAGING_PERIOD_MS);
     const [spokeMaterial, setSpokeMaterial] = useState<SpokeMaterial>(DEFAULT_SPOKE_MATERIAL);
     const [spokeDiameter_MM, setSpokeDiameter_MM] = useState(DEFAULT_SPOKE_DIAMETER_MM);
+    const [amplitudeDeviationThreshold, setAmplitudeDeviationThreshold] = useState(DEFAULT_AMPLITUDE_DEVIATION_THRESHOLD);
     const [infoDialogOpened, setInfoDialogOpened] = useState(false);
+    const [advancedSettingsDialogOpened, setAdvancedSettingsDialogOpened] = useState(false);
 
     const [spectre_HZ_DB, setSpectre_HZ_DB] = useState<Array<[number, number]>>([]);
 
@@ -82,7 +87,10 @@ export default function HomePage() {
         [spectre_HZ_DB, amplitude_DB]
     )
 
-    const amplitudeDeviationReliable = useMemo(() => amplitudeDeviation > DEFAULT_AMPLITUDE_DEVIATION_THRESHOLD, [amplitudeDeviation])
+    const amplitudeDeviationReliable = useMemo(
+        () => amplitudeDeviation > amplitudeDeviationThreshold,
+        [amplitudeDeviation, amplitudeDeviationThreshold]
+    )
 
     const startCallback = useCallback(async () => {
         setSpectre_HZ_DB([])
@@ -108,6 +116,25 @@ export default function HomePage() {
 
     const onCloseInfoDialogCallback = useCallback(() => {
         setInfoDialogOpened(false)
+    }, [])
+
+    const onOpenAdvancedSettingsDialogCallback = useCallback(() => {
+        setAdvancedSettingsDialogOpened(true)
+    }, [])
+
+    const onCloseAdvancedSettingsDialogCallback = useCallback(() => {
+        setAdvancedSettingsDialogOpened(false)
+    }, [])
+
+    const resetAllCallback = useCallback(() => {
+        setSpokeLength_MM(DEFAULT_SPOKE_LENGTH_MM)
+        setSpecificSpokeDensity_KG_M(DEFAULT_SPOKE_DENSITY_KG_M3)
+        setLowerTensionBound_KGF(DEFAULT_LOWER_TENSION_BOUND_KGF)
+        setUpperTensionBound_KGF(DEFAULT_UPPER_TENSION_BOUND_KGF)
+        setAveragingPeriod_MS(DEFAULT_AVERAGING_PERIOD_MS)
+        setSpokeMaterial(DEFAULT_SPOKE_MATERIAL)
+        setSpokeDiameter_MM(DEFAULT_SPOKE_DIAMETER_MM)
+        setAmplitudeDeviationThreshold(DEFAULT_AMPLITUDE_DEVIATION_THRESHOLD)
     }, [])
 
     useEffect(() => {
@@ -138,12 +165,15 @@ export default function HomePage() {
             setUpperTensionBound_KGF(settings.upperTensionBound_KGF ?? DEFAULT_UPPER_TENSION_BOUND_KGF)
             setAveragingPeriod_MS(settings.averagingPeriod_MS ?? DEFAULT_AVERAGING_PERIOD_MS)
             setSpokeMaterial(settings.spokeMaterial ?? DEFAULT_SPOKE_MATERIAL)
+            setSpokeDiameter_MM(settings.spokeDiameter_MM ?? DEFAULT_SPOKE_DIAMETER_MM)
+            setAmplitudeDeviationThreshold(settings.amplitudeDeviationThreshold ?? DEFAULT_AMPLITUDE_DEVIATION_THRESHOLD)
         } catch (e) {
             console.log(`Local storage read error ${e}`)
+            resetAllCallback()
         } finally {
             setSettingsLoaded(true)
         }
-    }, []);
+    }, [resetAllCallback]);
 
     useEffect(() => {
         if (!settingsLoaded) {
@@ -157,6 +187,8 @@ export default function HomePage() {
             upperTensionBound_KGF,
             averagingPeriod_MS,
             spokeMaterial,
+            spokeDiameter_MM,
+            amplitudeDeviationThreshold
         }))
     }, [
         settingsLoaded,
@@ -165,7 +197,9 @@ export default function HomePage() {
         lowerTensionBound_KGF,
         upperTensionBound_KGF,
         averagingPeriod_MS,
-        spokeMaterial
+        spokeMaterial,
+        spokeDiameter_MM,
+        amplitudeDeviationThreshold
     ]);
 
     useEffect(() => {
@@ -211,5 +245,13 @@ export default function HomePage() {
         infoDialogOpened={infoDialogOpened}
         onCloseInfoDialog={onCloseInfoDialogCallback}
         onOpenInfoDialog={onOpenInfoDialogCallback}
+        licenseUrl={LICENSE_URL}
+        githubUrl={GITHUB_URL}
+        advancedSettingsDialogOpened={advancedSettingsDialogOpened}
+        onOpenAdvancedSettingsDialog={onOpenAdvancedSettingsDialogCallback}
+        onCloseAdvancedSettingsDialog={onCloseAdvancedSettingsDialogCallback}
+        amplitudeDeviationThreshold={amplitudeDeviationThreshold}
+        onAmplitudeDeviationThresholdChange={setAmplitudeDeviationThreshold}
+        onReset={resetAllCallback}
     />;
 }
