@@ -18,6 +18,7 @@ import {SpokeMaterial} from "@/app/types";
 import InfoIcon from '@mui/icons-material/InfoOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import {InfoDialog} from "@/components/info-dialog";
+import {AdvancedSettingsDialog} from "@/components/advanced-settings-dialog";
 
 const CHART_Y_MIN = -150
 const CHART_X_TICKS_AMOUNT = 10
@@ -52,6 +53,12 @@ type Props = {
     onCloseInfoDialog: () => void
     githubUrl: string,
     licenseUrl: string
+    advancedSettingsDialogOpened: boolean
+    onOpenAdvancedSettingsDialog: () => void
+    onCloseAdvancedSettingsDialog: () => void
+    amplitudeDeviationThreshold: number
+    onAmplitudeDeviationThresholdChange: (value: number) => void
+    onReset: () => void
 }
 
 const darkTheme = createTheme({
@@ -94,7 +101,13 @@ export const HomePageView = memo((props: Props) => {
         lowerFrequencyBound_HZ,
         upperFrequencyBound_HZ,
         githubUrl,
-        licenseUrl
+        licenseUrl,
+        advancedSettingsDialogOpened,
+        onOpenAdvancedSettingsDialog,
+        onCloseAdvancedSettingsDialog,
+        amplitudeDeviationThreshold,
+        onAmplitudeDeviationThresholdChange,
+        onReset
     } = props
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -197,6 +210,23 @@ export const HomePageView = memo((props: Props) => {
                 githubUrl={githubUrl}
                 licenseUrl={licenseUrl}
             />
+            <AdvancedSettingsDialog
+                open={advancedSettingsDialogOpened}
+                onClose={onCloseAdvancedSettingsDialog}
+                lowerTensionBound_KGF={lowerTensionBound_KGF}
+                upperTensionBound_KGF={upperTensionBound_KGF}
+                onLowerTensionBound_KGF_Change={onLowerTensionBound_KGF_Change}
+                onUpperTensionBound_KGF_Change={onUpperTensionBound_KGF_Change}
+                onAveragingPeriod_MS_Change={onAveragingPeriod_MS_Change}
+                upperFrequencyBound_HZ={upperFrequencyBound_HZ}
+                lowerFrequencyBound_HZ={lowerFrequencyBound_HZ}
+                averagingPeriod_MS={averagingPeriod_MS}
+                amplitudeDeviation={amplitudeDeviation}
+                amplitudeDeviationThreshold={amplitudeDeviationThreshold}
+                onAmplitudeDeviationThresholdChange={onAmplitudeDeviationThresholdChange}
+                onReset={onReset}
+                started={started}
+            />
             <main className={"flex flex-col items-center justify-start w-full p-4"}>
                 <div className={"flex flex-row items-center justify-between w-96 max-w-full mb-6 gap-4"}>
                     <Typography
@@ -234,10 +264,9 @@ export const HomePageView = memo((props: Props) => {
                         <ToggleButton value="aluminium">Aluminium</ToggleButton>
                         <ToggleButton value="other">Other</ToggleButton>
                     </ToggleButtonGroup>
-                    {/*<ToggleButton value={""} ><SettingsIcon /></ToggleButton>*/}
 
                     <Button
-                        onClick={onOpenInfoDialog}
+                        onClick={onOpenAdvancedSettingsDialog}
                         variant={"outlined"}
                         size={"medium"}
                         color={"primary"}

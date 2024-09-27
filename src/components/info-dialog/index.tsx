@@ -52,7 +52,7 @@ export const InfoDialog = memo((props: Props) => {
                     </li>
                     <li>
                         <DialogContentText>
-                            Make sure you are in the quiet room
+                            Make sure you are in the quiet room.
                         </DialogContentText>
                     </li>
                     <li>
