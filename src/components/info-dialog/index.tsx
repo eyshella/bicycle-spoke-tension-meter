@@ -67,7 +67,8 @@ export const InfoDialog = memo((props: Props) => {
                     </li>
                     <li>
                         <DialogContentText>
-                            Place your finger lightly on the crossing spoke for better accuracy (to avoid its vibration).
+                            Place your finger lightly on the crossing spoke for better accuracy (to avoid its
+                            vibration).
                         </DialogContentText>
                     </li>
                     <li>
@@ -76,6 +77,12 @@ export const InfoDialog = memo((props: Props) => {
                         </DialogContentText>
                     </li>
                 </ul>
+                <br/>
+                <DialogContentText>
+                    The app can only measure spoke tensions between 50 and 150 kgf.
+                    If you're unable to measure the tension, it's likely too loose (the spoke bends easily).
+                    Try adjusting the spoke tension until it falls within the measurable range.
+                </DialogContentText>
                 <br/>
                 <DialogContentText>
                     Feel free to come up with comments and suggestions at the <Link target="_blank" href={githubUrl}
