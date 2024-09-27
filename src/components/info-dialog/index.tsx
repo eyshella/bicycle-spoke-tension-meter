@@ -2,34 +2,22 @@
 import {memo} from "react";
 import Button from '@mui/material/Button';
 import {
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-    TextField,
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Link,
 } from "@mui/material";
 
 type Props = {
     open: boolean,
     onClose: () => void,
-    lowerTensionBound_KGF: number,
-    onLowerTensionBound_KGF_Change: (value: number) => void
-    upperTensionBound_KGF: number,
-    onUpperTensionBound_KGF_Change: (value: number) => void
-    averagingPeriod_MS: number
-    onAveragingPeriod_MS_Change: (value: number) => void
-    amplitudeDeviation: number
-    lowerFrequencyBound_HZ: number,
-    upperFrequencyBound_HZ: number,
+    githubUrl: string
+    licenseUrl: string
 }
 
 export const InfoDialog = memo((props: Props) => {
     const {
         open,
         onClose,
-        lowerTensionBound_KGF,
-        onLowerTensionBound_KGF_Change,
-        upperTensionBound_KGF,
-        onUpperTensionBound_KGF_Change,
-        averagingPeriod_MS,
-        onAveragingPeriod_MS_Change,
+        githubUrl,
+        licenseUrl
     } = props
 
     return (
@@ -38,21 +26,65 @@ export const InfoDialog = memo((props: Props) => {
             onClose={onClose}
         >
             <DialogTitle>
-                {"Use Google's location service?"}
+                {"Information"}
             </DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    This is internal settings and parameters that may be useful in some cases.
+                    This web app uses sound to measure bicycle spoke tension.
                 </DialogContentText>
-                <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
-                    <TextField
-                        label="Lower tension bound (kgf)"
-                        variant="outlined"
-                        color={"primary"}
-                        value={lowerTensionBound_KGF}
-                        onChange={it => onLowerTensionBound_KGF_Change(+it.target.value)}
-                    />
-                </div>
+
+                <br/>
+                <ul className={"list-disc"}>
+                    <li>
+                        <DialogContentText>
+                            Enter spoke length from spoke nipple to the first crossing with other spoke.
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Choose spoke material (usually steel or aluminium).
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Enter spoke diameter.
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Make sure you are in the quiet room
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Start measuring by pressing <b>Start</b> button.
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Vibrate the spoke like a guitar string by a plastic card or plectrum.
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Place your finger lightly on the crossing spoke for better accuracy (to avoid its vibration).
+                        </DialogContentText>
+                    </li>
+                    <li>
+                        <DialogContentText>
+                            Wait until measured tension became green. Repeat few times to verify.
+                        </DialogContentText>
+                    </li>
+                </ul>
+                <br/>
+                <DialogContentText>
+                    Feel free to come up with comments and suggestions at the <Link target="_blank" href={githubUrl}
+                                                                                    color={"info"}>Github.</Link>
+                </DialogContentText>
+                <DialogContentText>
+                    This application is licensed under the <Link target="_blank" href={licenseUrl} color={"info"}>MIT
+                    License.</Link>
+                </DialogContentText>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose} autoFocus>Close</Button>

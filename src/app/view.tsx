@@ -3,7 +3,7 @@ import {memo, useEffect, useMemo, useRef} from "react";
 import {ceil, floor, forOwn, groupBy, mean, round} from "lodash";
 import Chart from 'chart.js/auto';
 import Button from '@mui/material/Button';
-import {blueGrey, deepOrange, green, grey, lightGreen, teal} from "@mui/material/colors";
+import {blueGrey, deepOrange, green, grey} from "@mui/material/colors";
 import {
     Card,
     CardContent,
@@ -15,8 +15,9 @@ import {
     Typography
 } from "@mui/material";
 import {SpokeMaterial} from "@/app/types";
-// import InfoIcon from '@mui/icons-material/InfoOutlined';
-// import {InfoDialog} from "@/components/info-dialog";
+import InfoIcon from '@mui/icons-material/InfoOutlined';
+import SettingsIcon from '@mui/icons-material/SettingsOutlined';
+import {InfoDialog} from "@/components/info-dialog";
 
 const CHART_Y_MIN = -150
 const CHART_X_TICKS_AMOUNT = 10
@@ -49,6 +50,8 @@ type Props = {
     infoDialogOpened: boolean
     onOpenInfoDialog: () => void
     onCloseInfoDialog: () => void
+    githubUrl: string,
+    licenseUrl: string
 }
 
 const darkTheme = createTheme({
@@ -89,7 +92,9 @@ export const HomePageView = memo((props: Props) => {
         onCloseInfoDialog,
         amplitudeDeviation,
         lowerFrequencyBound_HZ,
-        upperFrequencyBound_HZ
+        upperFrequencyBound_HZ,
+        githubUrl,
+        licenseUrl
     } = props
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -186,21 +191,14 @@ export const HomePageView = memo((props: Props) => {
 
     return (
         <ThemeProvider theme={darkTheme}>
-            {/*<InfoDialog*/}
-            {/*    open={infoDialogOpened}*/}
-            {/*    onClose={onCloseInfoDialog}*/}
-            {/*    lowerTensionBound_KGF={lowerTensionBound_KGF}*/}
-            {/*    onLowerTensionBound_KGF_Change={onLowerTensionBound_KGF_Change}*/}
-            {/*    upperTensionBound_KGF={upperTensionBound_KGF}*/}
-            {/*    onUpperTensionBound_KGF_Change={onUpperTensionBound_KGF_Change}*/}
-            {/*    averagingPeriod_MS={averagingPeriod_MS}*/}
-            {/*    onAveragingPeriod_MS_Change={onAveragingPeriod_MS_Change}*/}
-            {/*    amplitudeDeviation={amplitudeDeviation}*/}
-            {/*    lowerFrequencyBound_HZ={lowerFrequencyBound_HZ}*/}
-            {/*    upperFrequencyBound_HZ={upperFrequencyBound_HZ}*/}
-            {/*/>*/}
+            <InfoDialog
+                open={infoDialogOpened}
+                onClose={onCloseInfoDialog}
+                githubUrl={githubUrl}
+                licenseUrl={licenseUrl}
+            />
             <main className={"flex flex-col items-center justify-start w-full p-4"}>
-                <div className={"flex flex-row items-center justify-center w-96 max-w-full mb-6 gap-4"}>
+                <div className={"flex flex-row items-center justify-between w-96 max-w-full mb-6 gap-4"}>
                     <Typography
                         textAlign={'center'}
                         variant={'h6'}
@@ -208,9 +206,9 @@ export const HomePageView = memo((props: Props) => {
                     >
                         Bicycle Spoke Tension Meter
                     </Typography>
-                    {/*<Button onClick={onOpenInfoDialog} variant={"text"} color={"info"} disabled={infoDialogOpened}>*/}
-                    {/*    <InfoIcon />*/}
-                    {/*</Button>*/}
+                    <Button onClick={onOpenInfoDialog} variant={"text"} color={"primary"} disabled={infoDialogOpened}>
+                        <InfoIcon/>
+                    </Button>
                 </div>
                 <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
                     <TextField
@@ -222,11 +220,12 @@ export const HomePageView = memo((props: Props) => {
                         disabled={started}
                     />
                 </div>
-                <div className={"flex flex-col items-stretch justify-start w-96 max-w-full mb-6"}>
+                <div className={"flex flex-row items-center justify-between w-96 max-w-full mb-6"}>
                     <ToggleButtonGroup
                         color="primary"
                         exclusive
                         disabled={started}
+                        size={"small"}
                         aria-label="Material"
                         value={spokeMaterial}
                         onChange={(_, it) => onSpokeMaterialChange(it)}
@@ -235,6 +234,17 @@ export const HomePageView = memo((props: Props) => {
                         <ToggleButton value="aluminium">Aluminium</ToggleButton>
                         <ToggleButton value="other">Other</ToggleButton>
                     </ToggleButtonGroup>
+                    {/*<ToggleButton value={""} ><SettingsIcon /></ToggleButton>*/}
+
+                    <Button
+                        onClick={onOpenInfoDialog}
+                        variant={"outlined"}
+                        size={"medium"}
+                        color={"primary"}
+                        disabled={infoDialogOpened}
+                    >
+                        <SettingsIcon/>
+                    </Button>
                 </div>
                 {
                     spokeMaterial !== 'other' &&
@@ -293,5 +303,5 @@ export const HomePageView = memo((props: Props) => {
                 </div>
             </main>
         </ThemeProvider>
-);
+    );
 })

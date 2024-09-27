@@ -7,6 +7,9 @@ import {SignalAveraging} from "@/core/signal-averaging";
 import {HomePageView} from "@/app/view";
 import {SpokeMaterial} from "@/app/types";
 
+const GITHUB_URL = "https://github.com/eyshella/bicycle-spoke-tension-meter"
+const LICENSE_URL = "https://raw.githubusercontent.com/eyshella/bicycle-spoke-tension-meter/refs/heads/main/LICENSE"
+
 const DEFAULT_SPOKE_LENGTH_MM = 191
 const DEFAULT_SPOKE_DENSITY_KG_M3 = 0.024
 const DEFAULT_LOWER_TENSION_BOUND_KGF = 50
@@ -211,5 +214,7 @@ export default function HomePage() {
         infoDialogOpened={infoDialogOpened}
         onCloseInfoDialog={onCloseInfoDialogCallback}
         onOpenInfoDialog={onOpenInfoDialogCallback}
+        licenseUrl={LICENSE_URL}
+        githubUrl={GITHUB_URL}
     />;
 }
