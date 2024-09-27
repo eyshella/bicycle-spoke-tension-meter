@@ -54,7 +54,7 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
             <DialogContent>
                 <div className={"flex flex-col items-start justify-start max-w-full"}>
                     <div className={"mb-6"}>
-                        <DialogContentText>
+                        <DialogContentText  tabIndex={-1}>
                             These are advanced settings that you might only need to adjust in specific situations. It's
                             usually best to leave them alone. If you accidentally mess something up, you can always
                             reset all app settings to their original values by clicking the 'Reset All' button.
@@ -128,7 +128,7 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
                         />
                     </div>
                     <div className={"flex flex-col items-start justify-start max-w-full"}>
-                        <Button onClick={onReset} autoFocus color={'warning'} variant={"outlined"} disabled={started}>Reset all</Button>
+                        <Button onClick={onReset} color={'warning'} variant={"outlined"} disabled={started}>Reset all</Button>
                     </div>
                 </div>
             </DialogContent>
