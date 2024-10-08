@@ -19,6 +19,7 @@ import InfoIcon from '@mui/icons-material/InfoOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import {InfoDialog} from "@/components/info-dialog";
 import {AdvancedSettingsDialog} from "@/components/advanced-settings-dialog";
+import {useNumericField} from "@/hooks/use-numeric-field";
 
 const CHART_Y_MIN = -150
 const CHART_X_TICKS_AMOUNT = 10
@@ -202,6 +203,10 @@ export const HomePageView = memo((props: Props) => {
         chart.current.update('none')
     }, [bars, barColors]);
 
+    const spokeLength_MM_Field = useNumericField(spokeLength_MM, onSpokeLength_MM_Change)
+    const spokeDiameter_MM_Field = useNumericField(spokeDiameter_MM, onSpokeDiameter_MM_Change)
+    const specificSpokeDensity_KG_M_Field = useNumericField(specificSpokeDensity_KG_M, onSpecificSpokeDensity_KG_M_Change)
+
     return (
         <ThemeProvider theme={darkTheme}>
             <InfoDialog
@@ -245,9 +250,8 @@ export const HomePageView = memo((props: Props) => {
                         label="Spoke length from nipple to cross with other spoke (mm)"
                         variant="outlined"
                         color={"primary"}
-                        value={spokeLength_MM}
-                        onChange={it => onSpokeLength_MM_Change(+it.target.value)}
                         disabled={started}
+                        {...spokeLength_MM_Field}
                     />
                 </div>
                 <div className={"flex flex-row items-center justify-between w-96 max-w-full mb-6"}>
@@ -282,9 +286,8 @@ export const HomePageView = memo((props: Props) => {
                             label="Spoke diameter (mm)"
                             variant="outlined"
                             color={"primary"}
-                            value={spokeDiameter_MM}
-                            onChange={it => onSpokeDiameter_MM_Change(+it.target.value)}
                             disabled={started}
+                            {...spokeDiameter_MM_Field}
                         />
                     </div>
                 }
@@ -295,9 +298,8 @@ export const HomePageView = memo((props: Props) => {
                             label="Specific spoke density (kg/m)"
                             variant="outlined"
                             color={"primary"}
-                            value={specificSpokeDensity_KG_M}
-                            onChange={it => onSpecificSpokeDensity_KG_M_Change(+it.target.value)}
                             disabled={started}
+                            {...specificSpokeDensity_KG_M_Field}
                         />
                     </div>
                 }

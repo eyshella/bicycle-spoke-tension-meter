@@ -1,10 +1,11 @@
 "use client"
-import {memo} from "react";
+import {memo, useCallback, useState} from "react";
 import Button from '@mui/material/Button';
 import {
     Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
     TextField,
 } from "@mui/material";
+import {useNumericField} from "@/hooks/use-numeric-field";
 
 type Props = {
     open: boolean,
@@ -43,6 +44,11 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
         onReset
     } = props
 
+    const lowerTensionBound_KGF_Field = useNumericField(lowerTensionBound_KGF, onLowerTensionBound_KGF_Change)
+    const upperTensionBound_KGF_Field = useNumericField(upperTensionBound_KGF, onUpperTensionBound_KGF_Change)
+    const averagingPeriod_MS_Field = useNumericField(averagingPeriod_MS, onAveragingPeriod_MS_Change)
+    const amplitudeDeviationThresholdField = useNumericField(amplitudeDeviationThreshold, onAmplitudeDeviationThresholdChange)
+
     return (
         <Dialog
             open={open}
@@ -65,9 +71,8 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
                             label="Lower tension bound (kgf)"
                             variant="outlined"
                             color={"primary"}
-                            value={lowerTensionBound_KGF}
-                            onChange={it => onLowerTensionBound_KGF_Change(+it.target.value)}
                             disabled={started}
+                            {...lowerTensionBound_KGF_Field}
                         />
                     </div>
                     <div className={"flex flex-col items-stretch justify-start sm:w-96 w-48 max-w-full mb-6"}>
@@ -75,9 +80,8 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
                             label="Upper tension bound (kgf)"
                             variant="outlined"
                             color={"primary"}
-                            value={upperTensionBound_KGF}
-                            onChange={it => onUpperTensionBound_KGF_Change(+it.target.value)}
                             disabled={started}
+                            {...upperTensionBound_KGF_Field}
                         />
                     </div>
                     <div className={"flex flex-col items-stretch justify-start sm:w-96 w-48 max-w-full mb-6"}>
@@ -103,9 +107,8 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
                             label="Averaging period (ms)"
                             variant="outlined"
                             color={"primary"}
-                            value={averagingPeriod_MS}
-                            onChange={it => onAveragingPeriod_MS_Change(+it.target.value)}
                             disabled={started}
+                            {...averagingPeriod_MS_Field}
                         />
                     </div>
                     <div className={"flex flex-col items-stretch justify-start sm:w-96 w-48 max-w-full mb-6"}>
@@ -113,9 +116,8 @@ export const AdvancedSettingsDialog = memo((props: Props) => {
                             label="Amplitude deviation threshold"
                             variant="outlined"
                             color={"primary"}
-                            value={amplitudeDeviationThreshold}
-                            onChange={it => onAmplitudeDeviationThresholdChange(+it.target.value)}
                             disabled={started}
+                            {...amplitudeDeviationThresholdField}
                         />
                     </div>
                     <div className={"flex flex-col items-stretch justify-start sm:w-96 w-48 max-w-full mb-6"}>
