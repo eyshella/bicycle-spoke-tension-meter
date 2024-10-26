@@ -9,9 +9,13 @@ import {SpokeMaterial} from "@/app/types";
 
 const GITHUB_URL = "https://github.com/eyshella/bicycle-spoke-tension-meter"
 const LICENSE_URL = "https://raw.githubusercontent.com/eyshella/bicycle-spoke-tension-meter/refs/heads/main/LICENSE"
+const GRATITUDE: Record<'name' | 'url' | 'reason', string>[] = [
+    {name: 'Timur Rakhimov', url: 'https://github.com/moldybizkit', reason: 'pair coding and help with illustrations'},
+    {name: 'Mariia Ragozina', url: 'https://www.linkedin.com/in/mariia-ragozina/', reason: 'quality assurance'}
+]
 
 const DEFAULT_SPOKE_LENGTH_MM = 191
-const DEFAULT_SPOKE_DENSITY_KG_M3 = 0.024
+const DEFAULT_SPOKE_DENSITY_KG_M = 0.0245
 const DEFAULT_LOWER_TENSION_BOUND_KGF = 50
 const DEFAULT_UPPER_TENSION_BOUND_KGF = 150
 const DEFAULT_AVERAGING_PERIOD_MS = 1000
@@ -33,7 +37,7 @@ export default function HomePage() {
     const [settingsLoaded, setSettingsLoaded] = useState(false)
     const [started, setStarted] = useState(false);
     const [spokeLength_MM, setSpokeLength_MM] = useState(DEFAULT_SPOKE_LENGTH_MM);
-    const [specificSpokeDensity_KG_M, setSpecificSpokeDensity_KG_M] = useState(DEFAULT_SPOKE_DENSITY_KG_M3);
+    const [specificSpokeDensity_KG_M, setSpecificSpokeDensity_KG_M] = useState(DEFAULT_SPOKE_DENSITY_KG_M);
     const [lowerTensionBound_KGF, setLowerTensionBound_KGF] = useState(DEFAULT_LOWER_TENSION_BOUND_KGF);
     const [upperTensionBound_KGF, setUpperTensionBound_KGF] = useState(DEFAULT_UPPER_TENSION_BOUND_KGF);
     const [averagingPeriod_MS, setAveragingPeriod_MS] = useState(DEFAULT_AVERAGING_PERIOD_MS);
@@ -50,6 +54,7 @@ export default function HomePage() {
 
     const spokeLength_M = useMemo(() => spokeLength_MM / 1000, [spokeLength_MM])
     const spokeMass_KG = useMemo(() => spokeLength_M * specificSpokeDensity_KG_M, [spokeLength_M, specificSpokeDensity_KG_M])
+
     const lowerFrequencyBound_HZ = useMemo(
         () => SpokeTension.fromKGS(lowerTensionBound_KGF).toFrequency(spokeMass_KG, spokeLength_M),
         [lowerTensionBound_KGF, spokeMass_KG, spokeLength_M]
@@ -128,7 +133,7 @@ export default function HomePage() {
 
     const resetAllCallback = useCallback(() => {
         setSpokeLength_MM(DEFAULT_SPOKE_LENGTH_MM)
-        setSpecificSpokeDensity_KG_M(DEFAULT_SPOKE_DENSITY_KG_M3)
+        setSpecificSpokeDensity_KG_M(DEFAULT_SPOKE_DENSITY_KG_M)
         setLowerTensionBound_KGF(DEFAULT_LOWER_TENSION_BOUND_KGF)
         setUpperTensionBound_KGF(DEFAULT_UPPER_TENSION_BOUND_KGF)
         setAveragingPeriod_MS(DEFAULT_AVERAGING_PERIOD_MS)
@@ -160,7 +165,7 @@ export default function HomePage() {
             }
 
             setSpokeLength_MM(settings.spokeLength_MM ?? DEFAULT_SPOKE_LENGTH_MM)
-            setSpecificSpokeDensity_KG_M(settings.spokeDensity_KG_M3 ?? DEFAULT_SPOKE_DENSITY_KG_M3)
+            setSpecificSpokeDensity_KG_M(settings.specificSpokeDensity_KG_M ?? DEFAULT_SPOKE_DENSITY_KG_M)
             setLowerTensionBound_KGF(settings.lowerTensionBound_KGF ?? DEFAULT_LOWER_TENSION_BOUND_KGF)
             setUpperTensionBound_KGF(settings.upperTensionBound_KGF ?? DEFAULT_UPPER_TENSION_BOUND_KGF)
             setAveragingPeriod_MS(settings.averagingPeriod_MS ?? DEFAULT_AVERAGING_PERIOD_MS)
@@ -182,7 +187,7 @@ export default function HomePage() {
 
         localStorage.setItem(TENSION_METER_SETTINGS_STORAGE_KEY, JSON.stringify({
             spokeLength_MM,
-            spokeDensity_KG_M3: specificSpokeDensity_KG_M,
+            specificSpokeDensity_KG_M,
             lowerTensionBound_KGF,
             upperTensionBound_KGF,
             averagingPeriod_MS,
@@ -209,7 +214,7 @@ export default function HomePage() {
 
         const density_KG_M3 = DENSITIES_KG_M3[spokeMaterial]
         setSpecificSpokeDensity_KG_M(
-            round(density_KG_M3*Math.PI*(spokeDiameter_MM/2/1000)**2, 4)
+            round(density_KG_M3 * Math.PI * (spokeDiameter_MM / 2 / 1000) ** 2, 4)
         )
     }, [spokeMaterial, spokeDiameter_MM]);
 
@@ -247,6 +252,7 @@ export default function HomePage() {
         onOpenInfoDialog={onOpenInfoDialogCallback}
         licenseUrl={LICENSE_URL}
         githubUrl={GITHUB_URL}
+        gratitude={GRATITUDE}
         advancedSettingsDialogOpened={advancedSettingsDialogOpened}
         onOpenAdvancedSettingsDialog={onOpenAdvancedSettingsDialogCallback}
         onCloseAdvancedSettingsDialog={onCloseAdvancedSettingsDialogCallback}

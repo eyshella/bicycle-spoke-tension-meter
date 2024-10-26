@@ -53,6 +53,7 @@ type Props = {
     onOpenInfoDialog: () => void
     onCloseInfoDialog: () => void
     githubUrl: string,
+    gratitude: Record<'name' | 'url' | 'reason', string>[],
     licenseUrl: string
     advancedSettingsDialogOpened: boolean
     onOpenAdvancedSettingsDialog: () => void
@@ -61,7 +62,6 @@ type Props = {
     onAmplitudeDeviationThresholdChange: (value: number) => void
     onReset: () => void
 }
-
 const darkTheme = createTheme({
     palette: {
         mode: 'dark',
@@ -102,6 +102,7 @@ export const HomePageView = memo((props: Props) => {
         lowerFrequencyBound_HZ,
         upperFrequencyBound_HZ,
         githubUrl,
+        gratitude,
         licenseUrl,
         advancedSettingsDialogOpened,
         onOpenAdvancedSettingsDialog,
@@ -213,6 +214,7 @@ export const HomePageView = memo((props: Props) => {
                 open={infoDialogOpened}
                 onClose={onCloseInfoDialog}
                 githubUrl={githubUrl}
+                gratitude={gratitude}
                 licenseUrl={licenseUrl}
             />
             <AdvancedSettingsDialog
