@@ -102,8 +102,7 @@ export const InfoDialog = memo((props: Props) => {
                                                                                     color={"info"}>Github.</Link>
                 </DialogContentText>
                 <DialogContentText>
-                    This application is licensed under the <Link target="_blank" href={licenseUrl} color={"info"}>MIT
-                    License.</Link>
+                    This application is licensed under the <Link target="_blank" href={licenseUrl} color={"info"}>Apache License, Version 2.0.</Link>
                 </DialogContentText>
                 <br/>
                 <DialogContentText>
